@@ -1,4 +1,5 @@
 <?php
+<<<<<<< HEAD
 class Database {
     // Konfigurasi Railway Anda
     private $host = 'yamanote.proxy.rlwy.net';
@@ -107,5 +108,6 @@ class Database {
             die("Error Query: " . $e->getMessage() . " | SQL: " . $sql);
         }
     }
+
 }
 ?>
