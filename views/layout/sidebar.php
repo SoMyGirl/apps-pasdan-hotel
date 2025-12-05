@@ -1,13 +1,11 @@
 <aside class="w-64 border-r border-zinc-200 bg-white hidden md:flex flex-col">
     
-    <div class="h-16 flex items-center px-6 border-b border-zinc-100">
-        <div class="flex items-center gap-2 font-bold text-xl tracking-tight text-zinc-900">
-            <div class="w-8 h-8 bg-zinc-900 rounded-lg flex items-center justify-center text-white">
-                <i data-lucide="building-2" class="h-5 w-5"></i>
-            </div>
-            <span>SMK HOTEL</span>
-        </div>
+<div class="h-16 flex items-center px-6 border-b border-zinc-100">
+    <div class="flex items-center gap-2 font-bold text-xl tracking-tight text-zinc-900">
+            <img src="assets/img/logo.png" alt="Logo SMK Hotel" class="h-11 w-auto">
+        <span>SMK HOTEL</span>
     </div>
+</div>
 
     <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
         <?php

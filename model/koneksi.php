@@ -1,5 +1,4 @@
 <?php
-<<<<<<< HEAD
 class Database {
     // Konfigurasi Railway Anda
     private $host = 'yamanote.proxy.rlwy.net';
