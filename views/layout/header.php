@@ -15,6 +15,27 @@
     <style>
         body { font-family: sans-serif; }
         @media print { aside, header, .no-print { display: none !important; } }
+        /* Scrollbar Kustom agar lebih tipis dan modern */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #d4d4d8; /* Zinc-300 */
+            border-radius: 20px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: #a1a1aa; /* Zinc-400 */
+        }
+
+        /* Firefox */
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #d4d4d8 transparent;
+        }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden bg-zinc-50">

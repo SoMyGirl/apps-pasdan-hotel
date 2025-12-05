@@ -1,29 +1,116 @@
-<div class="flex justify-between items-center mb-6">
-    <h2 class="text-2xl font-bold text-zinc-900">Kelola Kamar</h2>
-    <a href="index.php?modul=Room&aksi=create" class="bg-zinc-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-zinc-800 flex items-center gap-2">
-        <i data-lucide="plus" class="w-4 h-4"></i> Tambah Kamar
-    </a>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div>
+        <h1 class="text-3xl font-bold tracking-tight text-zinc-900">Master Kamar</h1>
+        <p class="text-zinc-500 mt-1 text-sm">Kelola daftar kamar, tipe, dan status ketersediaan.</p>
+    </div>
+    <div class="flex items-center gap-3">
+        <div class="relative">
+            <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-zinc-400"></i>
+            <input type="text" id="searchRoom" placeholder="Cari nomor kamar..." 
+                   class="pl-9 pr-4 py-2 w-64 rounded-lg border border-zinc-200 text-sm focus:border-zinc-900 focus:ring-zinc-900 transition-all shadow-sm">
+        </div>
+        <a href="index.php?modul=Room&aksi=create" class="bg-zinc-900 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-zinc-800 transition-all shadow-sm flex items-center gap-2">
+            <i data-lucide="plus" class="w-4 h-4"></i> Tambah Kamar
+        </a>
+    </div>
 </div>
 
 <div class="bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-sm">
     <table class="w-full text-sm text-left">
-        <thead class="bg-zinc-50 border-b">
-            <tr><th class="px-6 py-3">No Kamar</th><th class="px-6 py-3">Tipe</th><th class="px-6 py-3">Harga Dasar</th><th class="px-6 py-3">Status</th><th class="px-6 py-3 text-right">Aksi</th></tr>
-        </thead>
-        <tbody class="divide-y divide-zinc-100">
-            <?php foreach($kamar as $k): ?>
-            <tr class="hover:bg-zinc-50">
-                <td class="px-6 py-3 font-bold text-lg"><?= $k['nomor_kamar'] ?></td>
-                <td class="px-6 py-3"><?= $k['nama_tipe'] ?></td>
-                <td class="px-6 py-3">Rp <?= number_format($k['harga_dasar']) ?></td>
-                <td class="px-6 py-3">
-                    <span class="text-xs px-2 py-1 bg-zinc-100 rounded border border-zinc-200 uppercase font-medium"><?= $k['status'] ?></span>
-                </td>
-                <td class="px-6 py-3 text-right">
-                    <a href="index.php?modul=Room&aksi=index&hapus=<?= $k['id_kamar'] ?>" class="btn-confirm text-red-600 hover:underline" data-pesan="Hapus kamar ini?">Hapus</a>
-                </td>
+        <thead class="bg-zinc-50 border-b border-zinc-100">
+            <tr>
+                <th class="px-6 py-4 font-semibold text-zinc-500">Nomor Kamar</th>
+                <th class="px-6 py-4 font-semibold text-zinc-500">Tipe Kamar</th>
+                <th class="px-6 py-4 font-semibold text-zinc-500">Harga Dasar</th>
+                <th class="px-6 py-4 font-semibold text-zinc-500 text-center">Status Saat Ini</th>
+                <th class="px-6 py-4 font-semibold text-zinc-500 text-right">Aksi</th>
             </tr>
+        </thead>
+        <tbody class="divide-y divide-zinc-100" id="roomTable">
+            <?php foreach($kamar as $k): ?>
+                <?php 
+                    // Logic Badge Warna
+                    $statusClass = "";
+                    $label = ucfirst($k['status']);
+                    if($k['status'] == 'available') {
+                        $statusClass = "bg-emerald-50 text-emerald-700 ring-emerald-600/20";
+                    } elseif($k['status'] == 'occupied') {
+                        $statusClass = "bg-rose-50 text-rose-700 ring-rose-600/20";
+                    } else { // Dirty
+                        $statusClass = "bg-amber-50 text-amber-700 ring-amber-600/20";
+                    }
+                ?>
+                <tr class="hover:bg-zinc-50 transition-colors group">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-500 group-hover:bg-zinc-900 group-hover:text-white transition-colors">
+                                <i data-lucide="key" class="w-5 h-5"></i>
+                            </div>
+                            <span class="text-lg font-bold text-zinc-900 search-key"><?= $k['nomor_kamar'] ?></span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="font-medium text-zinc-700"><?= $k['nama_tipe'] ?></span>
+                    </td>
+                    <td class="px-6 py-4 font-mono text-zinc-600">
+                        Rp <?= number_format($k['harga_dasar']) ?>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ring-1 ring-inset <?= $statusClass ?>">
+                            <?= $label ?>
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="confirmDelete(<?= $k['id_kamar'] ?>, '<?= $k['nomor_kamar'] ?>')" 
+                                class="inline-flex items-center justify-center p-2 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                                title="Hapus Kamar">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                </tr>
             <?php endforeach; ?>
         </tbody>
     </table>
+    
+    <?php if(empty($kamar)): ?>
+        <div class="p-12 text-center text-zinc-400">
+            <i data-lucide="door-closed" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+            <p>Belum ada data kamar.</p>
+        </div>
+    <?php endif; ?>
 </div>
+
+<script>
+    // 1. Search Logic
+    document.getElementById('searchRoom').addEventListener('keyup', function() {
+        let filter = this.value.toUpperCase();
+        let rows = document.querySelectorAll("#roomTable tr");
+        rows.forEach(row => {
+            let txt = row.querySelector(".search-key").innerText;
+            if (txt.toUpperCase().indexOf(filter) > -1) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    });
+
+    // 2. Delete Confirmation SweetAlert
+    function confirmDelete(id, nama) {
+        Swal.fire({
+            title: 'Hapus Kamar '+nama+'?',
+            text: "Data yang dihapus tidak dapat dikembalikan!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48', // Rose-600
+            cancelButtonColor: '#e4e4e7', // Zinc-200
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: '<span class="text-zinc-600">Batal</span>',
+            customClass: { popup: 'rounded-xl' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "index.php?modul=Room&aksi=index&hapus=" + id;
+            }
+        })
+    }
+</script>

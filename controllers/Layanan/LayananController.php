@@ -1,44 +1,64 @@
 <?php
+
 class LayananController {
     private $db;
-    public function __construct() { $this->db = new Database(); }
+    
+    public function __construct() { 
+        $this->db = new Database(); 
+    }
 
     public function index() {
-        // --- LOGIKA CREATE (TAMBAH DATA) ---
-        if (isset($_POST['simpan'])) {
-            $nama     = $_POST['nama'];
-            $harga    = $_POST['harga'];
-            $satuan   = $_POST['satuan'];
-            $kategori = $_POST['kategori'];
-
-            $sql = "INSERT INTO master_layanan (nama_layanan, harga_satuan, satuan, kategori) 
-                    VALUES ('$nama', '$harga', '$satuan', '$kategori')";
-            
-            $this->db->query($sql);
-
-            // Notifikasi Sukses
-            $_SESSION['flash_type'] = 'success';
-            $_SESSION['flash_message'] = 'Menu layanan berhasil ditambahkan!';
-            
-            header("Location: index.php?modul=Layanan&aksi=index");
+        // Cek Otoritas
+        if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+            header("Location: index.php?modul=Dashboard&aksi=index");
             exit;
         }
 
-        // --- LOGIKA DELETE (HAPUS DATA) ---
+        // A. HANDLE TAMBAH MENU
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan'])) {
+            $nama     = htmlspecialchars($_POST['nama']);
+            $harga    = filter_input(INPUT_POST, 'harga', FILTER_SANITIZE_NUMBER_INT);
+            $satuan   = htmlspecialchars($_POST['satuan']);
+            $kategori = htmlspecialchars($_POST['kategori']);
+
+            $stmt = $this->db->prepare("INSERT INTO master_layanan (nama_layanan, harga_satuan, satuan, kategori) VALUES (:nm, :hrg, :stn, :kat)");
+            
+            if ($stmt->execute(['nm' => $nama, 'hrg' => $harga, 'stn' => $satuan, 'kat' => $kategori])) {
+                $this->flash('success', 'Menu baru berhasil ditambahkan!');
+                header("Location: index.php?modul=Layanan&aksi=index"); 
+                exit;
+            }
+        }
+
+        // B. HANDLE HAPUS MENU
         if (isset($_GET['hapus'])) {
-            $this->db->query("DELETE FROM master_layanan WHERE id_layanan=" . $_GET['hapus']);
+            $id = $_GET['hapus'];
             
-            $_SESSION['flash_type'] = 'success';
-            $_SESSION['flash_message'] = 'Menu berhasil dihapus!';
+            // Cek Dependensi: Jangan hapus jika sudah pernah dipesan di transaksi
+            $cek = $this->db->prepare("SELECT id_detail FROM transaksi_layanan WHERE id_layanan = :id LIMIT 1");
+            $cek->execute(['id' => $id]);
             
-            header("Location: index.php?modul=Layanan&aksi=index");
+            if($cek->rowCount() > 0) {
+                $this->flash('error', 'Gagal! Menu ini ada dalam riwayat transaksi.');
+            } else {
+                $stmt = $this->db->prepare("DELETE FROM master_layanan WHERE id_layanan = :id");
+                $stmt->execute(['id' => $id]);
+                $this->flash('success', 'Menu berhasil dihapus.');
+            }
+            header("Location: index.php?modul=Layanan&aksi=index"); 
             exit;
         }
 
-        // --- AMBIL DATA UNTUK DITAMPILKAN ---
-        $data = $this->db->query("SELECT * FROM master_layanan ORDER BY id_layanan DESC")->fetchAll();
+        // C. AMBIL DATA
+        $data = $this->db->query("SELECT * FROM master_layanan ORDER BY kategori ASC, nama_layanan ASC")->fetchAll(PDO::FETCH_ASSOC);
         
         $this->view('Layanan/index', ['data' => $data]);
+    }
+
+    private function flash($type, $msg) {
+        if(session_status() == PHP_SESSION_NONE) session_start();
+        $_SESSION['flash_type'] = $type;
+        $_SESSION['flash_message'] = $msg;
     }
 
     private function view($p, $d=[]) { 

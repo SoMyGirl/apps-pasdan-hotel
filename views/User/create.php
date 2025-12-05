@@ -1,41 +1,77 @@
-<div class="max-w-md mx-auto">
-    <div class="mb-6">
-        <a href="index.php?modul=User&aksi=index" class="text-sm text-zinc-500 hover:text-zinc-900 flex items-center gap-1 mb-2">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
-        </a>
-        <h2 class="text-2xl font-bold text-zinc-900">Tambah User Baru</h2>
+<div class="max-w-md mx-auto mt-10">
+    <div class="mb-8 text-center">
+        <h2 class="text-2xl font-bold text-zinc-900 tracking-tight">Tambah Staff Baru</h2>
+        <p class="text-sm text-zinc-500 mt-2">Buat akun untuk Admin atau Resepsionis baru.</p>
     </div>
 
-    <div class="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm">
-        <form method="POST" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-zinc-700 mb-1">Nama Lengkap</label>
-                <input type="text" name="nama" required class="w-full rounded-md border-zinc-300 focus:ring-2 focus:ring-zinc-900 focus:border-transparent">
-            </div>
-            
-            <div>
-                <label class="block text-sm font-medium text-zinc-700 mb-1">Username</label>
-                <input type="text" name="username" required class="w-full rounded-md border-zinc-300 focus:ring-2 focus:ring-zinc-900 focus:border-transparent">
-            </div>
+    <div class="bg-white rounded-xl border border-zinc-200 shadow-xl shadow-zinc-200/50 overflow-hidden">
+        <div class="p-8">
+            <form method="POST" class="space-y-6">
+                
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">Nama Lengkap</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i data-lucide="user" class="w-4 h-4 text-zinc-400 group-focus-within:text-zinc-900 transition-colors"></i>
+                        </div>
+                        <input type="text" name="nama" required placeholder="Contoh: Siti Aminah" autofocus
+                               class="block w-full h-11 pl-10 pr-3 rounded-lg border-zinc-200 text-sm shadow-sm focus:border-zinc-900 focus:ring-zinc-900 placeholder:text-zinc-300 transition-all">
+                    </div>
+                </div>
 
-            <div>
-                <label class="block text-sm font-medium text-zinc-700 mb-1">Password</label>
-                <input type="password" name="password" required class="w-full rounded-md border-zinc-300 focus:ring-2 focus:ring-zinc-900 focus:border-transparent">
-            </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">Username Login</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i data-lucide="at-sign" class="w-4 h-4 text-zinc-400 group-focus-within:text-zinc-900 transition-colors"></i>
+                        </div>
+                        <input type="text" name="username" required placeholder="tanpa spasi" 
+                               class="block w-full h-11 pl-10 pr-3 rounded-lg border-zinc-200 text-sm shadow-sm focus:border-zinc-900 focus:ring-zinc-900 placeholder:text-zinc-300 transition-all lowercase">
+                    </div>
+                    <p class="text-[10px] text-zinc-400 mt-1">*Digunakan untuk login sistem.</p>
+                </div>
 
-            <div>
-                <label class="block text-sm font-medium text-zinc-700 mb-1">Role / Hak Akses</label>
-                <select name="role" class="w-full rounded-md border-zinc-300 focus:ring-2 focus:ring-zinc-900 focus:border-transparent">
-                    <option value="resepsionis">Resepsionis (Kasir & Checkin)</option>
-                    <option value="admin">Admin (Full Akses)</option>
-                </select>
-            </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">Password</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i data-lucide="lock" class="w-4 h-4 text-zinc-400 group-focus-within:text-zinc-900 transition-colors"></i>
+                        </div>
+                        <input type="password" name="password" required placeholder="••••••••" 
+                               class="block w-full h-11 pl-10 pr-3 rounded-lg border-zinc-200 text-sm shadow-sm focus:border-zinc-900 focus:ring-zinc-900 placeholder:text-zinc-300 transition-all">
+                    </div>
+                </div>
 
-            <div class="pt-4">
-                <button type="submit" class="w-full bg-zinc-900 text-white py-2 rounded-md font-medium hover:bg-zinc-800 transition-colors">
-                    Simpan User
-                </button>
-            </div>
-        </form>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">Akses Role</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="role" value="resepsionis" class="peer sr-only" checked>
+                            <div class="rounded-lg border border-zinc-200 p-3 hover:bg-zinc-50 peer-checked:border-zinc-900 peer-checked:bg-zinc-900 peer-checked:text-white transition-all text-center">
+                                <span class="text-sm font-bold block">Resepsionis</span>
+                                <span class="text-[10px] opacity-70">Front Office</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="role" value="admin" class="peer sr-only">
+                            <div class="rounded-lg border border-zinc-200 p-3 hover:bg-zinc-50 peer-checked:border-zinc-900 peer-checked:bg-zinc-900 peer-checked:text-white transition-all text-center">
+                                <span class="text-sm font-bold block">Administrator</span>
+                                <span class="text-[10px] opacity-70">Full Access</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-zinc-100 flex gap-3">
+                    <a href="index.php?modul=User&aksi=index" class="w-1/3 py-3 rounded-lg border border-zinc-200 text-zinc-600 font-bold text-sm hover:bg-zinc-50 text-center transition-all">
+                        Batal
+                    </a>
+                    <button type="submit" class="w-2/3 bg-zinc-900 text-white py-3 rounded-lg font-bold hover:bg-zinc-800 transition-all shadow-lg flex items-center justify-center gap-2 group">
+                        <i data-lucide="save" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
+                        Simpan Akun
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
