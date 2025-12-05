@@ -61,7 +61,7 @@ $data_tipe = $ctrl->getTipe();
                             <th class="px-6 py-3 font-semibold">Tipe</th>
                             <th class="px-6 py-3 font-semibold">Harga</th>
                             <th class="px-6 py-3 font-semibold">Status</th>
-                            <th class="px-6 py-3 font-semibold text-right">Aksi</th>
+                            <th class="px-6 py-3 font-semibold text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-zinc-100">
@@ -88,7 +88,7 @@ $data_tipe = $ctrl->getTipe();
                                     </span>
                                 </td>
                                 
-                                <td class="px-6 py-4 text-center">
+                                <td class="px-6 py-4 text-right">
                                     <div class="flex items-center justify-end">
                                         <button type="button" 
                                             onclick="openEditModal('<?= $k['id_kamar'] ?>', '<?= $k['nomor_kamar'] ?>', '<?= $k['id_tipe'] ?>')"
