@@ -1,0 +1,69 @@
+/HotelPasundanSystem
+│
+├── .htaccess                 (Konfigurasi URL Rewriting / Clean URL)
+├── index.php                 (Main Router / Entry Point)
+├── fix_final.php             (Utility untuk perbaikan database - Opsional)
+│
+├── /assets                   (File Statis)
+│   ├── /css                  (Custom CSS jika ada)
+│   ├── /js                   (Custom JS jika ada)
+│   └── /images               (Logo, Foto Kamar)
+│
+├── /config                   (Konfigurasi Sistem)
+│   └── Database.php          (Koneksi PDO ke Railway/Localhost)
+│
+├── /controllers              (Logika Bisnis & Query - Micro Controllers)
+│   ├── /Auth
+│   │   └── AuthController.php      (Login, Logout)
+│   ├── /Dashboard
+│   │   └── DashboardController.php (Statistik & Room Rack)
+│   ├── /Checkin
+│   │   └── CheckinController.php   (Proses Input Tamu Baru)
+│   ├── /Checkout
+│   │   └── CheckoutController.php  (Proses Pembayaran & Keluar)
+│   ├── /Guest
+│   │   └── GuestController.php     (List Tamu In-House & Riwayat)
+│   ├── /POS
+│   │   └── POSController.php       (Pesan Makanan/Layanan)
+│   ├── /Room
+│   │   └── RoomController.php      (CRUD Kamar - Admin)
+│   ├── /Report
+│   │   └── ReportController.php    (Laporan Pendapatan - Admin)
+│   └── /User
+│       └── UserController.php      (CRUD User Pegawai - Admin)
+│
+└── /views                    (Tampilan / User Interface)
+    ├── /Layout               (Template Dasar)
+    │   ├── header.php        (CDN Tailwind, SweetAlert, Meta Tags)
+    │   ├── sidebar.php       (Menu Navigasi Responsif)
+    │   └── footer.php        (Script JS, Toast Logic)
+    │
+    ├── /Auth
+    │   └── login.php
+    │
+    ├── /Dashboard
+    │   └── index.php         (Tampilan Utama Room Rack)
+    │
+    ├── /Checkin
+    │   └── create.php        (Formulir Checkin Walk-in)
+    │
+    ├── /Checkout
+    │   └── payment.php       (Halaman Invoice & Kasir)
+    │
+    ├── /Guest
+    │   ├── inhouse.php       (Tabel Tamu Sedang Menginap)
+    │   └── history.php       (Tabel Riwayat Semua Tamu)
+    │
+    ├── /Room
+    │   ├── index.php         (Tabel Daftar Kamar)
+    │   └── create.php        (Form Tambah Kamar)
+    │
+    ├── /Report
+    │   └── income.php        (Tabel Laporan Keuangan)
+    │
+    ├── /User
+    │   └── index.php         (Manajemen Akun Staff)
+    │
+    └── /Errors
+        ├── 404.php           (Halaman Not Found)
+        └── 403.php           (Halaman Akses Ditolak)
