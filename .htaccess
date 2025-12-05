@@ -1,5 +1,6 @@
 RewriteEngine On
-
+RewriteRule ^(config|controllers|views)/ - [F,L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+RewriteRule ^([a-zA-Z0-9]+)/([a-zA-Z0-9]+)/?$ index.php?modul=$1&aksi=$2 [QSA,L]
+RewriteRule ^([a-zA-Z0-9]+)/?$ index.php?modul=$1&aksi=index [QSA,L]
