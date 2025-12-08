@@ -20,9 +20,9 @@
             <div class="flex justify-between items-start border-b border-zinc-100 pb-8 mb-8">
                 <div>
                     <h1 class="text-2xl font-black text-zinc-900 tracking-tighter uppercase flex items-center gap-2">
-                        <i data-lucide="building-2" class="w-6 h-6"></i> HOTEL SMK
+                        <i data-lucide="building-2" class="w-6 h-6"></i> HOTEL SMK Pasundan Subang
                     </h1>
-                    <p class="text-xs text-zinc-500 mt-2 w-48">Jl. Pendidikan No. 123, Kota Bandung, Jawa Barat (022) 123-4567</p>
+                    <p class="text-xs text-zinc-500 mt-2 w-48">Jl. Bagus Yabin No.06, Cigadung, Kec. Subang, Kabupaten Subang, Jawa Barat 41211</p>
                 </div>
                 <div class="text-right">
                     <h2 class="text-4xl font-black text-zinc-100 uppercase tracking-widest">INVOICE</h2>
@@ -123,7 +123,7 @@
                         <div class="space-y-3">
                             <div>
                                 <label class="text-xs font-bold text-zinc-500 mb-1 block">Pilih Item</label>
-                                <select name="id_layanan" class="w-full rounded-lg border-zinc-200 text-sm focus:ring-zinc-900 bg-zinc-50">
+                                <select name="id_layanan" class="w-full rounded-lg border-zinc-200 text-sm focus:ring-zinc-900 bg-zinc-50 h-10 px-3">
                                     <?php foreach($menu as $m): ?>
                                         <option value="<?= $m['id_layanan'] ?>">
                                             <?= $m['nama_layanan'] ?> (Rp <?= number_format($m['harga_satuan']) ?>)
@@ -134,9 +134,9 @@
                             <div class="flex gap-2">
                                 <div class="w-1/3">
                                     <label class="text-xs font-bold text-zinc-500 mb-1 block">Qty</label>
-                                    <input type="number" name="jumlah" value="1" min="1" class="w-full rounded-lg border-zinc-200 text-sm text-center focus:ring-zinc-900">
+                                    <input type="number" name="jumlah" value="1" min="1" class="w-full rounded-lg border-zinc-200 text-sm text-center focus:ring-zinc-900 h-10">
                                 </div>
-                                <button type="submit" class="flex-1 mt-auto bg-white border border-zinc-300 text-zinc-900 rounded-lg text-sm font-bold hover:bg-zinc-50 h-[38px] self-end">
+                                <button type="submit" class="flex-1 mt-auto bg-white border border-zinc-300 text-zinc-900 rounded-lg text-sm font-bold hover:bg-zinc-50 h-10 self-end">
                                     + Add Item
                                 </button>
                             </div>
@@ -155,42 +155,49 @@
                 <div class="p-4">
                     <?php if($sisa > 0): ?>
                         <form method="POST">
-                            <div class="space-y-3">
+                            <div class="space-y-4">
                                 <div>
-                                    <label class="text-xs font-bold text-zinc-500 mb-1 block">Nominal Bayar</label>
-                                    <div class="relative">
-                                        <span class="absolute left-3 top-2.5 text-zinc-400 text-sm font-bold">Rp</span>
-                                        <input type="number" name="uang" required max="<?= $sisa ?>" placeholder="<?= $sisa ?>" class="w-full pl-10 rounded-lg border-zinc-200 text-sm font-bold text-zinc-900 focus:ring-zinc-900">
+                                    <label class="text-xs font-bold text-zinc-500 mb-1.5 block">Nominal Bayar</label>
+                                    <div class="relative group">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <span class="text-zinc-400 text-sm font-bold group-focus-within:text-zinc-900 transition-colors">Rp</span>
+                                        </div>
+                                        <input type="number" name="uang" required max="<?= $sisa ?>" placeholder="<?= $sisa ?>" 
+                                            class="block w-full h-10 pl-10 pr-3 rounded-lg border-zinc-200 text-sm font-bold text-zinc-900 focus:border-zinc-900 focus:ring-zinc-900 placeholder:text-zinc-300 transition-all">
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="text-xs font-bold text-zinc-500 mb-1 block">Keterangan</label>
-                                    <select name="ket" class="w-full rounded-lg border-zinc-200 text-sm focus:ring-zinc-900 bg-zinc-50">
-                                        <option value="Pelunasan">Pelunasan</option>
-                                        <option value="Deposit / DP">Deposit / DP</option>
-                                    </select>
+                                    <label class="text-xs font-bold text-zinc-500 mb-1.5 block">Keterangan</label>
+                                    <div class="relative">
+                                        <select name="ket" class="block w-full h-10 px-3 rounded-lg border-zinc-200 text-sm focus:border-zinc-900 focus:ring-zinc-900 bg-white appearance-none transition-all">
+                                            <option value="Pelunasan">Pelunasan</option>
+                                            <option value="Deposit / DP">Deposit / DP</option>
+                                        </select>
+                                        <i data-lucide="chevron-down" class="absolute right-3 top-3 w-4 h-4 text-zinc-400 pointer-events-none"></i>
+                                    </div>
                                 </div>
-                                <button type="submit" name="pay" class="w-full py-3 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 shadow-md shadow-emerald-100 transition-all">
-                                    Process Payment
+                                <button type="submit" name="pay" class="w-full h-10 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 shadow-md shadow-emerald-100 transition-all flex justify-center items-center gap-2">
+                                    <i data-lucide="banknote" class="w-4 h-4"></i> Process Payment
                                 </button>
                             </div>
                         </form>
                     <?php else: ?>
-                        <div class="text-center py-4">
-                            <i data-lucide="check-circle-2" class="w-12 h-12 text-emerald-500 mx-auto mb-2"></i>
-                            <p class="text-sm font-bold text-emerald-700">Tagihan Lunas</p>
-                            <p class="text-xs text-zinc-500">Siap untuk checkout.</p>
+                        <div class="text-center py-6 bg-emerald-50/50 rounded-lg border border-emerald-100">
+                            <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                                <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                            </div>
+                            <p class="text-sm font-bold text-emerald-800">Tagihan Lunas</p>
+                            <p class="text-xs text-emerald-600">Siap untuk checkout.</p>
                         </div>
                     <?php endif; ?>
                 </div>
             </div>
 
             <?php if($sisa <= 0): ?>
-                <a href="index.php?modul=Checkout&aksi=payment&id=<?= $transaksi['id_transaksi'] ?>&process=checkout" 
-                   onclick="return confirm('Konfirmasi Checkout? Kamar akan diset menjadi Dirty.')"
-                   class="block w-full py-4 bg-rose-600 text-white text-center rounded-xl font-bold hover:bg-rose-700 shadow-lg shadow-rose-200 transition-all animate-pulse">
-                   FINALIZE CHECKOUT <i data-lucide="log-out" class="inline w-4 h-4 ml-1"></i>
-                </a>
+                <button onclick="confirmCheckout('<?= $transaksi['id_transaksi'] ?>')"
+                   class="w-full py-4 bg-rose-600 text-white text-center rounded-xl font-bold hover:bg-rose-700 shadow-lg shadow-rose-200 transition-all animate-pulse flex items-center justify-center gap-2">
+                   FINALIZE CHECKOUT <i data-lucide="log-out" class="w-4 h-4"></i>
+                </button>
             <?php endif; ?>
 
         <?php else: ?>
@@ -202,3 +209,31 @@
 
     </div>
 </div>
+
+<script>
+    // Inisialisasi Icon
+    lucide.createIcons();
+
+    function confirmCheckout(id) {
+        Swal.fire({
+            title: '<span class="text-zinc-900 font-bold">Konfirmasi Checkout?</span>',
+            html: '<p class="text-zinc-500">Status kamar akan berubah menjadi <strong class="text-amber-600">DIRTY</strong> dan transaksi akan ditutup.</p>',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48', // Rose-600
+            cancelButtonColor: '#e4e4e7', // Zinc-200
+            confirmButtonText: 'Ya, Checkout',
+            cancelButtonText: '<span class="text-zinc-600 font-bold">Batal</span>',
+            reverseButtons: true,
+            customClass: {
+                popup: 'rounded-2xl p-6',
+                confirmButton: 'rounded-lg px-6 py-2.5 font-bold',
+                cancelButton: 'rounded-lg px-6 py-2.5 hover:bg-zinc-100'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "index.php?modul=Checkout&aksi=payment&id=" + id + "&process=checkout";
+            }
+        })
+    }
+</script>
