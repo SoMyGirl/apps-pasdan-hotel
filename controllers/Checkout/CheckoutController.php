@@ -56,7 +56,7 @@ class CheckoutController {
 
             if ($t && $t['status_bayar'] == 'lunas') {
                 // 1. Selesaikan Transaksi
-                $this->db->query("UPDATE transaksi SET status_transaksi='finished', tgl_checkout=NOW() WHERE id_transaksi=$id");
+                $this->db->query("UPDATE transaksi SET status_transaksi='checkin', tgl_checkout=NOW() WHERE id_transaksi=$id");
                 // 2. Ubah Status Kamar jadi Dirty
                 $this->db->query("UPDATE kamar SET status='dirty' WHERE id_kamar=".$t['id_kamar']);
                 

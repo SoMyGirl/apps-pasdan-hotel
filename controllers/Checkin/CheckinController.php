@@ -37,7 +37,7 @@ class CheckinController {
             $sql = "INSERT INTO transaksi 
                     (no_invoice, nama_tamu, no_hp, id_kamar, tgl_checkin, durasi_malam, harga_kamar_per_malam, total_biaya_kamar, total_tagihan, status_transaksi, status_bayar, id_user_resepsionis) 
                     VALUES 
-                    (:inv, :nama, :hp, :id_kamar, :tgl, :durasi, :harga, :total, :total, 'active', 'belum_bayar', :user)";
+                    (:inv, :nama, :hp, :id_kamar, :tgl, :durasi, :harga, :total, :total, 'checkin', 'belum_bayar', :user)";
             
             $stmt = $this->db->prepare($sql);
             $stmt->execute([

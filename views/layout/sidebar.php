@@ -2,9 +2,7 @@
     
     <div class="h-16 flex items-center px-6 border-b border-zinc-100 shrink-0">
         <div class="flex items-center gap-3 font-bold text-xl tracking-tight text-zinc-900">
-            <div class="w-9 h-9 bg-zinc-900 rounded-xl flex items-center justify-center text-white shadow-lg shadow-zinc-200">
-                <i data-lucide="building-2" class="h-5 w-5"></i>
-            </div>
+            <img src="assets/img/logo.png" class="h-10 w-auto" alt="Logo smk pasundan">
             <span>HOTEL SMK</span>
         </div>
     </div>
