@@ -13,7 +13,7 @@
             <i data-lucide="plus" class="w-4 h-4"></i> Check-in Baru
         </a>
         <a href="index.php?modul=Guest&aksi=history" class="bg-zinc-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-zinc-800 transition-colors shadow-sm flex items-center gap-2">
-            history
+            History
         </a>
     </div>
 </div>
@@ -37,21 +37,37 @@
                     <tr>
                         <th class="px-6 py-4 font-semibold text-zinc-900">Tamu</th>
                         <th class="px-6 py-4 font-semibold text-zinc-900">Kamar</th>
-                        <th class="px-6 py-4 font-semibold text-zinc-900">Durasi / Tagihan</th>
-                        <th class="px-6 py-4 font-semibold text-zinc-900">Status Pembayaran</th>
+                        <th class="px-6 py-4 font-semibold text-zinc-900">Tagihan & Sisa</th>
+                        <th class="px-6 py-4 font-semibold text-zinc-900 text-center">Status Pembayaran</th>
                         <th class="px-6 py-4 text-right font-semibold text-zinc-900">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-100">
                     <?php foreach($tamu as $t): ?>
                         <?php 
-                            // Inisial Nama untuk Avatar
+                            // 1. Inisial Nama
                             $initials = collect(explode(' ', $t['nama_tamu']))->map(fn($word) => strtoupper(substr($word, 0, 1)))->take(2)->join('');
                             
-                            // Styling Badge
-                            $badgeClass = $t['status_bayar'] == 'lunas' 
-                                ? "bg-emerald-50 text-emerald-700 ring-emerald-600/20" 
-                                : "bg-amber-50 text-amber-700 ring-amber-600/20";
+                            // 2. Kalkulasi Real-time (PENTING)
+                            // Kita hitung sisa bayar berdasarkan data aktual, bukan status text di database
+                            // Ini mengatasi bug "Tambah Pesanan -> Status tetap Lunas"
+                            $tagihan = $t['total_tagihan'];
+                            $bayar   = $t['total_terbayar']; 
+                            $sisa    = $tagihan - $bayar;
+
+                            if ($sisa <= 0) {
+                                // LUNAS (Hijau)
+                                $badgeClass = "bg-emerald-50 text-emerald-700 ring-emerald-600/20";
+                                $statusText = "LUNAS";
+                            } elseif ($bayar > 0) {
+                                // DP / KURANG (Kuning/Biru)
+                                $badgeClass = "bg-amber-50 text-amber-700 ring-amber-600/20";
+                                $statusText = "KURANG (DP)";
+                            } else {
+                                // BELUM BAYAR SAMA SEKALI (Merah)
+                                $badgeClass = "bg-rose-50 text-rose-700 ring-rose-600/20";
+                                $statusText = "BELUM BAYAR";
+                            }
                         ?>
                         <tr class="hover:bg-zinc-50/50 transition-colors group">
                             <td class="px-6 py-4">
@@ -77,19 +93,18 @@
 
                             <td class="px-6 py-4">
                                 <div class="flex flex-col gap-1">
-                                    <span class="text-zinc-900 font-medium flex items-center gap-2">
-                                        <i data-lucide="calendar-clock" class="w-4 h-4 text-zinc-400"></i>
-                                        <?= date('d M, H:i', strtotime($t['tgl_checkin'])) ?>
+                                    <span class="text-zinc-900 font-bold">
+                                        Rp <?= number_format($tagihan) ?>
                                     </span>
                                     <span class="text-xs text-zinc-500">
-                                        Est. Checkout: <?= date('d M', strtotime($t['tgl_checkin'] . ' + '.$t['durasi_malam'].' days')) ?>
+                                        Sisa: <span class="<?= $sisa > 0 ? 'text-rose-600 font-bold' : 'text-emerald-600' ?>">Rp <?= number_format($sisa) ?></span>
                                     </span>
                                 </div>
                             </td>
 
-                            <td class="px-6 py-4">
-                                <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset <?= $badgeClass ?>">
-                                    <?= $t['status_bayar'] == 'belum_bayar' ? 'Belum Lunas' : 'Lunas' ?>
+                            <td class="px-6 py-4 text-center">
+                                <span class="inline-flex items-center rounded-md px-2 py-1 text-[10px] font-bold uppercase ring-1 ring-inset <?= $badgeClass ?>">
+                                    <?= $statusText ?>
                                 </span>
                             </td>
 
@@ -100,10 +115,11 @@
                                        title="Tambah Layanan/Menu">
                                         <i data-lucide="utensils" class="w-4 h-4"></i>
                                     </a>
+                                    
                                     <a href="index.php?modul=Checkout&aksi=payment&id=<?= $t['id_transaksi'] ?>" 
-                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 bg-white text-xs font-bold text-zinc-700 hover:border-zinc-900 hover:bg-zinc-50 transition-all shadow-sm">
-                                        Manage
-                                        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                                       class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-900 text-white text-xs font-bold hover:bg-zinc-800 transition-all shadow-sm">
+                                        Detail Tamu
+                                        <i data-lucide="arrow-right" class="w-3 h-3"></i>
                                     </a>
                                 </div>
                             </td>

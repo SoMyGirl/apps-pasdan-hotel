@@ -7,45 +7,56 @@ class GuestController {
         $this->db = new Database(); 
     }
 
-    // Tambahkan method ini di dalam GuestController class Anda
-public function history() {
-    // 1. Ambil Filter dari URL (Opsional)
-    $filter = isset($_GET['filter']) ? $_GET['filter'] : 'all';
-    
-    // 2. Query Dasar
-    $sql = "SELECT t.*, k.nomor_kamar 
-            FROM transaksi t 
-            JOIN kamar k ON t.id_kamar = k.id_kamar 
-            WHERE 1=1"; // Dummy WHERE agar mudah append string
-
-    // 3. Append Logic Filter
-    if ($filter == 'finished') {
-        $sql .= " AND status_transaksi = 'finished'";
-    } elseif ($filter == 'active') {
-        $sql .= " AND status_transaksi = 'active'";
-    }
-    
-    $sql .= " ORDER BY tgl_checkin DESC";
-    
-    // 4. Eksekusi
-    $tamu = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-    
-    // 5. Kirim data ke View
-    $this->view('Guest/history', ['tamu' => $tamu, 'filter' => $filter]);
-}
     public function index() {
-        // Tamu In-House (Sedang Menginap)
-        // Update: Join Tipe Kamar untuk info lebih lengkap
-        $sql = "SELECT t.*, k.nomor_kamar, tk.nama_tipe 
+        // Cek Login
+        if (!isset($_SESSION['status_login'])) {
+            header("Location: index.php?modul=Auth&aksi=login");
+            exit;
+        }
+
+        // QUERY OPTIMAL: 
+        // Mengambil data tamu + menjumlahkan riwayat pembayaran mereka (total_terbayar)
+        // Menggunakan COALESCE agar jika belum bayar hasilnya 0, bukan NULL
+        $sql = "SELECT t.*, k.nomor_kamar, tk.nama_tipe, 
+                       COALESCE(SUM(rp.jumlah_bayar), 0) as total_terbayar
                 FROM transaksi t 
                 JOIN kamar k ON t.id_kamar = k.id_kamar 
                 JOIN tipe_kamar tk ON k.id_tipe = tk.id_tipe
+                LEFT JOIN riwayat_pembayaran rp ON t.id_transaksi = rp.id_transaksi
                 WHERE t.status_transaksi = 'active' 
+                GROUP BY t.id_transaksi
                 ORDER BY t.tgl_checkin DESC";
         
         $tamu = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
         
         $this->view('Guest/inhouse', ['tamu' => $tamu]);
+    }
+
+    // Method history (Tetap sama, tidak diubah)
+    public function history() {
+        $tahun = isset($_GET['tahun']) ? $_GET['tahun'] : date('Y');
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
+
+        $sql = "SELECT t.*, k.nomor_kamar 
+                FROM transaksi t 
+                JOIN kamar k ON t.id_kamar = k.id_kamar 
+                WHERE (status_transaksi = 'finished' OR status_transaksi = 'active') 
+                AND YEAR(tgl_checkin) = '$tahun'
+                ORDER BY tgl_checkin DESC LIMIT $limit OFFSET $offset";
+        
+        $tamu = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        
+        $totalRow = $this->db->query("SELECT COUNT(*) as tot FROM transaksi WHERE YEAR(tgl_checkin) = '$tahun'")->fetch()['tot'];
+        $totalPages = ceil($totalRow / $limit);
+
+        $this->view('Guest/history', [
+            'tamu' => $tamu, 
+            'tahun' => $tahun, 
+            'page' => $page, 
+            'totalPages' => $totalPages
+        ]);
     }
 
     private function view($p, $d) { 
