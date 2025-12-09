@@ -62,10 +62,25 @@
 
 <div class="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-hidden">
     <div class="p-6 border-b border-zinc-100 flex flex-col md:flex-row justify-between items-center gap-4">
-        <h2 class="text-lg font-semibold text-zinc-900 flex items-center gap-2">
-            <i data-lucide="layout-grid" class="w-5 h-5 text-zinc-500"></i>
-            Room Status
-        </h2>
+        
+        <div class="flex items-center gap-4 w-full md:w-auto">
+            <h2 class="text-lg font-semibold text-zinc-900 flex items-center gap-2 whitespace-nowrap">
+                <i data-lucide="layout-grid" class="w-5 h-5 text-zinc-500"></i>
+                Status Kamar
+            </h2>
+            
+            <div class="relative w-full md:w-48">
+                <select onchange="window.location.href='index.php?modul=Dashboard&aksi=index&tipe='+this.value" 
+                        class="w-full pl-3 pr-8 py-1.5 rounded-lg border border-zinc-200 text-sm focus:ring-zinc-900 focus:border-zinc-900 bg-zinc-50 cursor-pointer">
+                    <option value="">Semua Tipe Kamar</option>
+                    <?php foreach($data['listTipe'] as $t): ?>
+                        <option value="<?= $t['id_tipe'] ?>" <?= $data['selectedTipe'] == $t['id_tipe'] ? 'selected' : '' ?>>
+                            <?= $t['nama_tipe'] ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
         
         <div class="flex gap-2">
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
@@ -81,82 +96,83 @@
     </div>
 
     <div class="p-6 bg-zinc-50/50">
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            <?php foreach($data['rooms'] as $r): ?>
-                <?php
-                // LOGIC UI BERDASARKAN STATUS
-                if ($r['status'] == 'available') {
-                    // Modern Clean Look
-                    $cardClass = "bg-white ring-1 ring-zinc-200 hover:ring-emerald-400 hover:shadow-md group";
-                    $badgeClass = "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20";
-                    $icon = "check-circle-2";
-                    $statusLabel = "Available";
-                    $subLabel = "Ready to Check-in";
-                    $action = "onclick=\"window.location.href='index.php?modul=Checkin&aksi=create&id_kamar={$r['id_kamar']}'\"";
-                } elseif ($r['status'] == 'occupied') {
-                    // Active Look
-                    $cardClass = "bg-white ring-1 ring-rose-200 hover:ring-rose-400 hover:shadow-md group";
-                    $badgeClass = "bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-600/20";
-                    $icon = "user";
-                    $statusLabel = "Occupied";
-                    // Potong nama jika terlalu panjang
-                    $subLabel = strlen($r['nama_tamu']) > 12 ? substr($r['nama_tamu'], 0, 12) . '..' : $r['nama_tamu'];
-                    $action = "onclick=\"openRoomModal('{$r['nomor_kamar']}', '{$r['nama_tamu']}', '{$r['id_transaksi']}', '{$r['nama_tipe']}')\"";
-                } else {
-                    // Warning Look
-                    $cardClass = "bg-zinc-50 ring-1 ring-amber-200 hover:ring-amber-400 hover:bg-white hover:shadow-md group";
-                    $badgeClass = "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20";
-                    $icon = "spray-can";
-                    $statusLabel = "Dirty";
-                    $subLabel = "Needs Housekeeping";
-                    $action = "onclick=\"confirmClean('{$r['id_kamar']}', '{$r['nomor_kamar']}')\"";
-                }
-                ?>
+        <?php if(empty($data['rooms'])): ?>
+            <div class="text-center py-10 text-zinc-400">
+                <i data-lucide="search-x" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>
+                <p>Tidak ada kamar ditemukan untuk tipe ini.</p>
+                <a href="index.php?modul=Dashboard&aksi=index" class="text-sm text-zinc-900 underline mt-1 block">Reset Filter</a>
+            </div>
+        <?php else: ?>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                <?php foreach($data['rooms'] as $r): ?>
+                    <?php
+                    // LOGIKA TAMPILAN KARTU
+                    if ($r['status'] == 'available') {
+                        $cardClass = "bg-white ring-1 ring-zinc-200 hover:ring-emerald-400 hover:shadow-md group";
+                        $badgeClass = "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20";
+                        $icon = "check-circle-2";
+                        $statusLabel = "Available";
+                        $subLabel = "Ready";
+                        $action = "onclick=\"window.location.href='index.php?modul=Checkin&aksi=create&id_kamar={$r['id_kamar']}'\"";
+                    } elseif ($r['status'] == 'occupied') {
+                        $cardClass = "bg-white ring-1 ring-rose-200 hover:ring-rose-400 hover:shadow-md group";
+                        $badgeClass = "bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-600/20";
+                        $icon = "user";
+                        $statusLabel = "Occupied";
+                        $subLabel = strlen($r['nama_tamu']) > 12 ? substr($r['nama_tamu'], 0, 12) . '..' : $r['nama_tamu'];
+                        $action = "onclick=\"openRoomModal('{$r['nomor_kamar']}', '{$r['nama_tamu']}', '{$r['id_transaksi']}', '{$r['nama_tipe']}')\"";
+                    } else {
+                        $cardClass = "bg-zinc-50 ring-1 ring-amber-200 hover:ring-amber-400 hover:bg-white hover:shadow-md group";
+                        $badgeClass = "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20";
+                        $icon = "spray-can";
+                        $statusLabel = "Dirty";
+                        $subLabel = "Cleaning";
+                        $action = "onclick=\"confirmClean('{$r['id_kamar']}', '{$r['nomor_kamar']}')\"";
+                    }
+                    ?>
 
-                <div <?= $action ?> class="relative rounded-xl p-4 flex flex-col justify-between h-36 cursor-pointer transition-all duration-200 <?= $cardClass ?>">
-                    <div class="flex justify-between items-start">
-                        <span class="text-2xl font-bold text-zinc-900 tracking-tight group-hover:scale-105 transition-transform">
-                            <?= $r['nomor_kamar'] ?>
-                        </span>
-                        <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium <?= $badgeClass ?>">
-                            <?= $statusLabel ?>
-                        </span>
-                    </div>
+                    <div <?= $action ?> class="relative rounded-xl p-4 flex flex-col justify-between h-36 cursor-pointer transition-all duration-200 <?= $cardClass ?>">
+                        <div class="flex justify-between items-start">
+                            <span class="text-2xl font-bold text-zinc-900 tracking-tight group-hover:scale-105 transition-transform">
+                                <?= $r['nomor_kamar'] ?>
+                            </span>
+                            <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium <?= $badgeClass ?>">
+                                <?= $statusLabel ?>
+                            </span>
+                        </div>
 
-                    <div>
-                        <p class="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">
-                            <?= $r['nama_tipe'] ?>
-                        </p>
-                    </div>
+                        <div>
+                            <p class="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">
+                                <?= $r['nama_tipe'] ?>
+                            </p>
+                        </div>
 
-                    <div class="flex items-center gap-2 mt-2 pt-3 border-t border-zinc-100/50">
-                        <i data-lucide="<?= $icon ?>" class="w-4 h-4 text-zinc-400 group-hover:text-zinc-600"></i>
-                        <span class="text-xs font-medium text-zinc-600 truncate">
-                            <?= $subLabel ?>
-                        </span>
+                        <div class="flex items-center gap-2 mt-2 pt-3 border-t border-zinc-100/50">
+                            <i data-lucide="<?= $icon ?>" class="w-4 h-4 text-zinc-400 group-hover:text-zinc-600"></i>
+                            <span class="text-xs font-medium text-zinc-600 truncate">
+                                <?= $subLabel ?>
+                            </span>
+                        </div>
                     </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 
 <div id="roomModal" class="hidden fixed inset-0 z-50">
     <div class="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm transition-opacity opacity-0" id="modalBackdrop"></div>
-    
     <div class="flex min-h-full items-center justify-center p-4 text-center">
         <div id="modalContent" class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg scale-95 opacity-0">
-            
             <div class="bg-zinc-50 px-6 py-4 border-b border-zinc-100 flex justify-between items-center">
                 <div>
-                    <h3 class="text-lg font-bold text-zinc-900" id="modalKamar">Room 101</h3>
-                    <p class="text-xs text-zinc-500 font-medium uppercase tracking-wide" id="modalTipe">Deluxe Room</p>
+                    <h3 class="text-lg font-bold text-zinc-900" id="modalKamar">Room -</h3>
+                    <p class="text-xs text-zinc-500 font-medium uppercase tracking-wide" id="modalTipe">-</p>
                 </div>
                 <button onclick="closeModal()" class="rounded-full p-1 hover:bg-zinc-200 transition-colors">
                     <i data-lucide="x" class="w-5 h-5 text-zinc-500"></i>
                 </button>
             </div>
-
             <div class="px-6 py-6">
                 <div class="flex items-center gap-4 mb-6 bg-white border border-zinc-100 p-3 rounded-xl shadow-sm">
                     <div class="h-12 w-12 rounded-full bg-zinc-900 flex items-center justify-center text-white">
@@ -164,13 +180,12 @@
                     </div>
                     <div>
                         <p class="text-xs text-zinc-400 font-bold uppercase">Current Guest</p>
-                        <h4 class="text-lg font-bold text-zinc-900" id="modalTamu">Guest Name</h4>
+                        <h4 class="text-lg font-bold text-zinc-900" id="modalTamu">-</h4>
                     </div>
                     <div class="ml-auto">
                         <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Active</span>
                     </div>
                 </div>
-
                 <div class="grid grid-cols-2 gap-4">
                     <a id="btnPOS" href="#" class="group relative flex flex-col items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white p-4 text-sm font-medium text-zinc-900 hover:bg-zinc-50 hover:border-zinc-300 transition-all">
                         <div class="rounded-full bg-zinc-100 p-2 group-hover:bg-white ring-1 ring-zinc-200">
@@ -186,7 +201,6 @@
                     </a>
                 </div>
             </div>
-
             <div class="bg-zinc-50 px-6 py-4 flex flex-row-reverse">
                 <a id="btnCheckout" href="#" class="inline-flex w-full justify-center rounded-lg bg-zinc-900 px-3 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-zinc-800 transition-all sm:w-auto sm:ml-3">
                     <i data-lucide="log-out" class="w-4 h-4 mr-2"></i> Proses Checkout
@@ -208,19 +222,16 @@
     const modalContent = document.getElementById('modalContent');
 
     function openRoomModal(no, nama, id, tipe) {
-        // Set Content
         document.getElementById('modalKamar').innerText = "Room " + no;
         document.getElementById('modalTamu').innerText = nama;
         document.getElementById('modalTipe').innerText = tipe;
         
         let link = "index.php?modul=Checkout&aksi=payment&id=" + id;
         document.getElementById('btnDetail').href = link;
-        document.getElementById('btnPOS').href = "index.php?modul=POS&aksi=index&id_transaksi=" + id; // Asumsi POS butuh ID Transaksi
+        document.getElementById('btnPOS').href = "index.php?modul=POS&aksi=index&id_transaksi=" + id; 
         document.getElementById('btnCheckout').href = link;
 
-        // Show Logic (Animation)
         modal.classList.remove('hidden');
-        // Trigger reflow
         void modal.offsetWidth; 
         
         modalBackdrop.classList.remove('opacity-0');
@@ -229,28 +240,25 @@
     }
 
     function closeModal() {
-        // Hide Animation
         modalBackdrop.classList.add('opacity-0');
         modalContent.classList.remove('scale-100', 'opacity-100');
         modalContent.classList.add('scale-95', 'opacity-0');
 
         setTimeout(() => {
             modal.classList.add('hidden');
-        }, 200); // Sesuaikan dengan duration transition CSS (default Tailwind ~150-300ms)
+        }, 200); 
     }
 
-    // Close on click outside
     modalBackdrop.addEventListener('click', closeModal);
 
     function confirmClean(id, no) {
-        // SweetAlert2 Modern Styling
         Swal.fire({
             title: `<span class="text-xl font-bold text-zinc-900">Room ${no} Cleaned?</span>`,
             text: "Kamar akan diubah statusnya menjadi Available.",
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#18181b', // Zinc-900
-            cancelButtonColor: '#e4e4e7', // Zinc-200
+            confirmButtonColor: '#18181b', 
+            cancelButtonColor: '#e4e4e7', 
             confirmButtonText: 'Yes, Confirm',
             cancelButtonText: '<span class="text-zinc-600">Cancel</span>',
             customClass: {
