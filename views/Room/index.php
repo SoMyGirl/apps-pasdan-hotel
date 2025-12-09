@@ -3,15 +3,37 @@
         <h1 class="text-3xl font-bold tracking-tight text-zinc-900">Master Kamar</h1>
         <p class="text-zinc-500 mt-1 text-sm">Kelola daftar kamar, tipe, dan status ketersediaan.</p>
     </div>
-    <div class="flex items-center gap-3">
-        <div class="relative">
+    <div class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+        
+        <div class="relative w-full md:w-auto">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i data-lucide="filter" class="h-4 w-4 text-zinc-400"></i>
+            </div>
+            <select onchange="window.location.href='index.php?modul=Room&aksi=index&tipe='+this.value" 
+                    class="pl-10 pr-8 py-2 w-full md:w-48 rounded-lg border border-zinc-200 text-sm focus:border-zinc-900 focus:ring-zinc-900 transition-all shadow-sm appearance-none bg-white cursor-pointer hover:border-zinc-300">
+                <option value="">Semua Tipe</option>
+                <?php foreach($listTipe as $t): ?>
+                    <option value="<?= $t['id_tipe'] ?>" <?= $selectedTipe == $t['id_tipe'] ? 'selected' : '' ?>>
+                        <?= $t['nama_tipe'] ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <i data-lucide="chevron-down" class="h-4 w-4 text-zinc-400"></i>
+            </div>
+        </div>
+
+        <div class="relative w-full md:w-auto">
             <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-zinc-400"></i>
             <input type="text" id="searchRoom" placeholder="Cari nomor kamar..." 
-                   class="pl-9 pr-4 py-2 w-64 rounded-lg border border-zinc-200 text-sm focus:border-zinc-900 focus:ring-zinc-900 transition-all shadow-sm">
+                   class="pl-9 pr-4 py-2 w-full md:w-64 rounded-lg border border-zinc-200 text-sm focus:border-zinc-900 focus:ring-zinc-900 transition-all shadow-sm">
         </div>
-        <a href="index.php?modul=Room&aksi=create" class="bg-zinc-900 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-zinc-800 transition-all shadow-sm flex items-center gap-2">
-            <i data-lucide="plus" class="w-4 h-4"></i> Tambah Kamar
-        </a>
+        
+        <?php if($_SESSION['role'] == 'admin'): ?>
+            <a href="index.php?modul=Room&aksi=create" class="bg-zinc-900 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-zinc-800 transition-all shadow-sm flex items-center gap-2 whitespace-nowrap">
+                <i data-lucide="plus" class="w-4 h-4"></i> Tambah
+            </a>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -23,20 +45,21 @@
                 <th class="px-6 py-4 font-semibold text-zinc-500">Tipe Kamar</th>
                 <th class="px-6 py-4 font-semibold text-zinc-500">Harga Dasar</th>
                 <th class="px-6 py-4 font-semibold text-zinc-500 text-center">Status Saat Ini</th>
-                <th class="px-6 py-4 font-semibold text-zinc-500 text-right">Aksi</th>
+                <?php if($_SESSION['role'] == 'admin'): ?>
+                    <th class="px-6 py-4 font-semibold text-zinc-500 text-right">Aksi</th>
+                <?php endif; ?>
             </tr>
         </thead>
         <tbody class="divide-y divide-zinc-100" id="roomTable">
             <?php foreach($kamar as $k): ?>
                 <?php 
-                    // Logic Badge Warna
                     $statusClass = "";
                     $label = ucfirst($k['status']);
                     if($k['status'] == 'available') {
                         $statusClass = "bg-emerald-50 text-emerald-700 ring-emerald-600/20";
                     } elseif($k['status'] == 'occupied') {
                         $statusClass = "bg-rose-50 text-rose-700 ring-rose-600/20";
-                    } else { // Dirty
+                    } else { 
                         $statusClass = "bg-amber-50 text-amber-700 ring-amber-600/20";
                     }
                 ?>
@@ -60,6 +83,8 @@
                             <?= $label ?>
                         </span>
                     </td>
+                    
+                    <?php if($_SESSION['role'] == 'admin'): ?>
                     <td class="px-6 py-4 text-right">
                         <button onclick="confirmDelete(<?= $k['id_kamar'] ?>, '<?= $k['nomor_kamar'] ?>')" 
                                 class="inline-flex items-center justify-center p-2 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
@@ -67,6 +92,7 @@
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                         </button>
                     </td>
+                    <?php endif; ?>
                 </tr>
             <?php endforeach; ?>
         </tbody>
@@ -74,14 +100,15 @@
     
     <?php if(empty($kamar)): ?>
         <div class="p-12 text-center text-zinc-400">
-            <i data-lucide="door-closed" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
-            <p>Belum ada data kamar.</p>
+            <i data-lucide="filter-x" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+            <p>Tidak ada kamar ditemukan untuk filter ini.</p>
+            <a href="index.php?modul=Room&aksi=index" class="text-sm text-zinc-900 underline mt-2 block">Reset Filter</a>
         </div>
     <?php endif; ?>
 </div>
 
 <script>
-    // 1. Search Logic
+    // 1. Search Logic (Client Side)
     document.getElementById('searchRoom').addEventListener('keyup', function() {
         let filter = this.value.toUpperCase();
         let rows = document.querySelectorAll("#roomTable tr");
@@ -95,15 +122,15 @@
         });
     });
 
-    // 2. Delete Confirmation SweetAlert
+    // 2. Delete Confirmation
     function confirmDelete(id, nama) {
         Swal.fire({
             title: 'Hapus Kamar '+nama+'?',
             text: "Data yang dihapus tidak dapat dikembalikan!",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#e11d48', // Rose-600
-            cancelButtonColor: '#e4e4e7', // Zinc-200
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#e4e4e7',
             confirmButtonText: 'Ya, Hapus!',
             cancelButtonText: '<span class="text-zinc-600">Batal</span>',
             customClass: { popup: 'rounded-xl' }

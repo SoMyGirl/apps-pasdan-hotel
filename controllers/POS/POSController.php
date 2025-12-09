@@ -3,10 +3,24 @@ class POSController {
     private $db;
     public function __construct() { $this->db = new Database(); }
 
+    // --- PERBAIKAN: Menambahkan Index untuk Redirect ---
+    public function index() {
+        if (isset($_GET['id_transaksi'])) {
+            $id = $_GET['id_transaksi'];
+            // Redirect ke halaman Checkout Payment karena UI POS ada di sana
+            header("Location: index.php?modul=Checkout&aksi=payment&id=$id");
+            exit;
+        } else {
+            // Jika tidak ada ID, kembalikan ke dashboard atau guest list
+            header("Location: index.php?modul=Guest&aksi=inhouse");
+            exit;
+        }
+    }
+
     // Fungsi untuk menambah pesanan (Action: add)
     public function add() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $id_transaksi = $_GET['id']; // Ambil ID Transaksi dari URL
+            $id_transaksi = $_GET['id']; 
             $id_layanan   = $_POST['id_layanan'];
             $jumlah       = $_POST['jumlah'];
 

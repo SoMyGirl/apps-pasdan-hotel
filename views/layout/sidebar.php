@@ -10,14 +10,21 @@
     <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1 custom-scrollbar">
         <?php
         $m = $_GET['modul'] ?? 'Dashboard';
+        $a = $_GET['aksi'] ?? 'index';
 
-        function renderMenu($target, $label, $icon, $curr) {
-            $isActive = ($curr == $target);
+        function renderMenu($targetModul, $targetAksi, $label, $icon, $currModul, $currAksi) {
+            // Logika aktif menu
+            if ($targetModul == 'Dashboard') {
+                $isActive = ($currModul == $targetModul);
+            } else {
+                $isActive = ($currModul == $targetModul && $currAksi == $targetAksi);
+            }
+
             $class = $isActive 
                 ? "bg-zinc-900 text-white shadow-md shadow-zinc-300" 
                 : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 hover:translate-x-1";
 
-            echo "<a href='index.php?modul=$target&aksi=index' 
+            echo "<a href='index.php?modul=$targetModul&aksi=$targetAksi' 
                      class='group flex items-center gap-3 px-3.5 py-2.5 mb-1 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out $class'>
                     <i data-lucide='$icon' class='w-[18px] h-[18px] transition-colors'></i>
                     $label
@@ -25,24 +32,20 @@
         }
 
         echo "<div class='px-4 mt-2 mb-2 text-[10px] font-bold text-zinc-400 uppercase tracking-wider'>Utama</div>";
-        renderMenu('Dashboard', 'Dashboard', 'layout-grid', $m);
+        renderMenu('Dashboard', 'index', 'Dashboard', 'layout-grid', $m, $a);
+        renderMenu('Room', 'index', 'List Kamar', 'door-open', $m, $a);
 
         echo "<div class='px-4 mt-6 mb-2 text-[10px] font-bold text-zinc-400 uppercase tracking-wider'>Front Office</div>";
-        
-        $chkActive = ($m == 'Checkin') ? "bg-zinc-900 text-white shadow-md" : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900";
-        echo "<a href='index.php?modul=Checkin&aksi=create' class='group flex items-center gap-3 px-3.5 py-2.5 mb-1 rounded-lg text-sm font-medium transition-all duration-200 $chkActive'>
-                <i data-lucide='key' class='w-[18px] h-[18px]'></i> Check-in Tamu
-              </a>";
-        
-        renderMenu('Guest', 'Data Tamu', 'book-user', $m);
-        renderMenu('Checkout', 'Kasir & Invoice', 'receipt', $m);
+        renderMenu('Checkin', 'create', 'Check-in Tamu', 'key', $m, $a);
+        renderMenu('Guest', 'index', 'Tamu In-House', 'book-user', $m, $a);
+        renderMenu('Guest', 'history', 'Riwayat Tamu', 'history', $m, $a);
+        renderMenu('Checkout', 'index', 'Kasir & Invoice', 'receipt', $m, $a);
 
         if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin') {
             echo "<div class='px-4 mt-6 mb-2 text-[10px] font-bold text-zinc-400 uppercase tracking-wider'>Back Office</div>";
-            renderMenu('Room', 'Kelola Kamar', 'door-open', $m);
-            renderMenu('Layanan', 'Menu Layanan', 'coffee', $m);
-            renderMenu('User', 'Staff & User', 'users', $m);
-            renderMenu('Report', 'Laporan Keuangan', 'bar-chart-3', $m);
+            renderMenu('Layanan', 'index', 'Menu Layanan', 'coffee', $m, $a);
+            renderMenu('User', 'index', 'Staff & User', 'users', $m, $a);
+            renderMenu('Report', 'index', 'Laporan Keuangan', 'bar-chart-3', $m, $a);
         }
         ?>
     </nav>
@@ -63,7 +66,7 @@
     </div>
 </aside>
 
-<div class="flex-1 w-full h-screen flex flex-col bg-zinc-50 overflow-hidden transition-all relative">
+<div class="flex-1 min-w-0 h-screen flex flex-col bg-zinc-50 overflow-hidden transition-all relative">
     
     <header class="h-16 bg-white/80 backdrop-blur-md border-b border-zinc-200 flex items-center justify-between px-8 shrink-0 no-print z-40 sticky top-0">
         <div class="flex items-center gap-2 text-sm text-zinc-500">
