@@ -14,15 +14,44 @@ class CheckoutController {
             exit;
         }
 
+        $filter = $_GET['filter'] ?? 'all'; 
+        $current_time = time(); // Waktu saat ini (timestamp)
+        
+        // Fetch all active transactions first
         $sql = "SELECT t.*, k.nomor_kamar, k.id_kamar 
                 FROM transaksi t 
                 JOIN kamar k ON t.id_kamar = k.id_kamar 
-                WHERE status_transaksi = 'active' 
+                WHERE status_transaksi = 'active'
                 ORDER BY tgl_checkin DESC";
         
-        $data = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        $raw_data = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        $data_to_view = [];
 
-        $this->view('Checkout/index', ['data' => $data]);
+        // Calculate estimated checkout date and apply filter in PHP
+        foreach ($raw_data as $d) {
+            $d['tgl_estimasi_checkout'] = date('Y-m-d H:i:s', strtotime($d['tgl_checkin'] . ' + ' . $d['durasi_malam'] . ' days'));
+            $checkout_timestamp = strtotime($d['tgl_estimasi_checkout']);
+            
+            // Logika Status
+            $is_unpaid = ($d['status_bayar'] != 'lunas');
+            $is_overdue = ($current_time > $checkout_timestamp && $is_unpaid);
+
+            $pass_filter = false;
+            
+            if ($filter == 'overdue' && $is_overdue) {
+                $pass_filter = true;
+            } elseif ($filter == 'unpaid' && $is_unpaid) {
+                $pass_filter = true;
+            } elseif ($filter == 'all') {
+                $pass_filter = true;
+            }
+
+            if ($pass_filter) {
+                $data_to_view[] = $d;
+            }
+        }
+
+        $this->view('Checkout/index', ['data' => $data_to_view, 'filter' => $filter]);
     }
 
     // 2. HALAMAN DETAIL PEMBAYARAN & INVOICE
@@ -33,7 +62,7 @@ class CheckoutController {
         
         // A. HANDLE PEMBAYARAN (POST)
         if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['pay'])) {
-            $uang = filter_input(INPUT_POST, 'uang', FILTER_SANITIZE_NUMBER_FLOAT);
+            $uang = filter_input(INPUT_POST, 'uang', FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
             $ket  = htmlspecialchars($_POST['ket']);
             $user = $_SESSION['user_id'];
 
@@ -48,7 +77,14 @@ class CheckoutController {
             exit;
         }
 
-        // B. HANDLE CHECKOUT FINAL
+        // B. HANDLE EXTEND DURATION (Baru)
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['extend'])) {
+            $this->updateDuration($id, (int)$_POST['durasi_baru']);
+            header("Location: index.php?modul=Checkout&aksi=payment&id=$id");
+            exit;
+        }
+
+        // C. HANDLE CHECKOUT FINAL
         if (isset($_GET['process']) && $_GET['process'] == 'checkout') {
             $stmt = $this->db->prepare("SELECT * FROM transaksi WHERE id_transaksi = :id");
             $stmt->execute(['id' => $id]);
@@ -56,7 +92,7 @@ class CheckoutController {
 
             if ($t && $t['status_bayar'] == 'lunas') {
                 // 1. Selesaikan Transaksi
-                $this->db->query("UPDATE transaksi SET status_transaksi='checkin', tgl_checkout=NOW() WHERE id_transaksi=$id");
+                $this->db->query("UPDATE transaksi SET status_transaksi='finished', tgl_checkout=NOW() WHERE id_transaksi=$id");
                 // 2. Ubah Status Kamar jadi Dirty
                 $this->db->query("UPDATE kamar SET status='dirty' WHERE id_kamar=".$t['id_kamar']);
                 
@@ -69,7 +105,7 @@ class CheckoutController {
             exit;
         }
 
-        // C. AMBIL DATA UNTUK VIEW
+        // D. AMBIL DATA UNTUK VIEW
         // Detail Transaksi
         $stmtTrx = $this->db->prepare("SELECT t.*, k.nomor_kamar, tp.nama_tipe, tp.harga_dasar 
                                        FROM transaksi t 
@@ -78,6 +114,13 @@ class CheckoutController {
                                        WHERE id_transaksi = :id");
         $stmtTrx->execute(['id' => $id]);
         $transaksi = $stmtTrx->fetch(PDO::FETCH_ASSOC);
+
+        if (!$transaksi) {
+             $this->flash('error', 'Transaksi tidak ditemukan!');
+             header("Location: index.php?modul=Checkout&aksi=index");
+             exit;
+        }
+
 
         // Item Layanan (POS)
         $stmtItem = $this->db->prepare("SELECT tl.*, m.nama_layanan 
@@ -117,7 +160,7 @@ class CheckoutController {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $id_transaksi = $_POST['id_transaksi'];
             $id_layanan   = $_POST['id_layanan'];
-            $jumlah       = $_POST['jumlah'];
+            $jumlah       = (int)$_POST['jumlah'];
 
             // Ambil Harga Satuan
             $stmtLayanan = $this->db->prepare("SELECT harga_satuan FROM master_layanan WHERE id_layanan = :id");
@@ -128,14 +171,22 @@ class CheckoutController {
                 $subtotal = $layanan['harga_satuan'] * $jumlah;
                 
                 // Insert ke Transaksi Layanan
-                $stmtIns = $this->db->prepare("INSERT INTO transaksi_layanan (id_transaksi, id_layanan, jumlah, subtotal) VALUES (:idt, :idl, :jml, :sub)");
-                $stmtIns->execute(['idt' => $id_transaksi, 'idl' => $id_layanan, 'jml' => $jumlah, 'sub' => $subtotal]);
+                $stmtIns = $this->db->prepare("INSERT INTO transaksi_layanan (id_transaksi, id_layanan, jumlah, harga_saat_ini, subtotal) VALUES (:idt, :idl, :jml, :hrg, :sub)");
+                $stmtIns->execute([
+                    'idt' => $id_transaksi, 
+                    'idl' => $id_layanan, 
+                    'jml' => $jumlah, 
+                    'hrg' => $layanan['harga_satuan'], 
+                    'sub' => $subtotal
+                ]);
 
                 // Update Total Tagihan di Tabel Transaksi
                 $this->updateTotalTagihan($id_transaksi);
-                $this->cekLunas($id_transaksi);
+                $this->cekLunas($id_transaksi); // Cek status pembayaran setelah tagihan berubah
 
                 $this->flash('success', 'Item berhasil ditambahkan.');
+            } else {
+                 $this->flash('error', 'Layanan tidak ditemukan.');
             }
             header("Location: index.php?modul=Checkout&aksi=payment&id=$id_transaksi");
             exit;
@@ -143,6 +194,41 @@ class CheckoutController {
     }
 
     // --- HELPER FUNCTIONS ---
+
+    // FUNGSI BARU: Update Durasi Menginap
+    private function updateDuration($id, $newDuration) {
+         if ($newDuration < 1) $newDuration = 1;
+
+         // 1. Ambil data kamar dan biaya per malam
+         $stmt = $this->db->prepare("SELECT harga_kamar_per_malam, durasi_malam FROM transaksi WHERE id_transaksi = :id");
+         $stmt->execute(['id' => $id]);
+         $trx = $stmt->fetch(PDO::FETCH_ASSOC);
+         
+         if ($trx) {
+            $currentDuration = (int)$trx['durasi_malam'];
+            if ($newDuration <= $currentDuration) {
+                 // Tambahkan validasi agar tidak bisa mengurangi durasi di sini
+                 $this->flash('error', "Gagal! Durasi baru ($newDuration malam) harus lebih besar dari durasi saat ini ($currentDuration malam).");
+                 return;
+            }
+
+            $newRoomCost = $trx['harga_kamar_per_malam'] * $newDuration;
+            
+            // 2. Update durasi dan biaya kamar
+            $stmtUpd = $this->db->prepare("UPDATE transaksi SET durasi_malam = :dur, total_biaya_kamar = :cost WHERE id_transaksi = :id");
+            $stmtUpd->execute(['dur' => $newDuration, 'cost' => $newRoomCost, 'id' => $id]);
+            
+            // 3. Update Grand Total (Total Tagihan)
+            $this->updateTotalTagihan($id);
+            
+            // 4. Update Status Pembayaran
+            $this->cekLunas($id);
+
+            $this->flash('success', "Durasi menginap berhasil diubah menjadi $newDuration malam.");
+        } else {
+            $this->flash('error', "Gagal memperpanjang durasi.");
+        }
+    }
 
     private function updateTotalTagihan($id) {
         // Hitung total POS
@@ -171,7 +257,13 @@ class CheckoutController {
         $tagihan = $data['total_tagihan'];
         $bayar   = $data['total_bayar'] ?? 0;
 
-        $status = ($bayar >= $tagihan) ? 'lunas' : (($bayar > 0) ? 'dp' : 'belum_bayar');
+        if ($bayar >= $tagihan) {
+             $status = 'lunas';
+        } elseif ($bayar > 0) {
+             $status = 'dp';
+        } else {
+             $status = 'belum_bayar';
+        }
         
         $stmtUpd = $this->db->prepare("UPDATE transaksi SET status_bayar = :stat WHERE id_transaksi = :id");
         $stmtUpd->execute(['stat' => $status, 'id' => $id]);
