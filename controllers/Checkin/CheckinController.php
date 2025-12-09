@@ -11,11 +11,12 @@ class CheckinController {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // 1. SANITASI & VALIDASI DASAR
             $nama = htmlspecialchars($_POST['nama']);
+            $nik = htmlspecialchars($_POST['nik']); // <<< NIK/Identitas Baru
             $hp = htmlspecialchars($_POST['hp']);
             $id_kamar = $_POST['id_kamar'];
             $tgl_checkin = $_POST['tgl'];
             $durasi = $_POST['durasi'];
-            $user_id = $_SESSION['user_id']; // Pastikan session sudah start di index.php
+            $user_id = $_SESSION['user_id']; 
 
             // 2. AMBIL DATA KAMAR (Harga & Validasi Status)
             $stmtKamar = $this->db->prepare("SELECT harga_dasar FROM kamar JOIN tipe_kamar USING(id_tipe) WHERE id_kamar = :id");
@@ -31,18 +32,20 @@ class CheckinController {
             // 3. HITUNG TOTAL
             $harga_per_malam = $dataKamar['harga_dasar'];
             $total_tagihan = $harga_per_malam * $durasi;
-            $invoice = 'INV-' . time() . mt_rand(10,99); // Invoice lebih unik
+            $invoice = 'INV-' . time() . mt_rand(10,99); 
 
             // 4. INSERT TRANSAKSI (Gunakan Prepared Statement agar AMAN)
+            // Tambahkan kolom nik_tamu dan ubah status_transaksi ke 'active'
             $sql = "INSERT INTO transaksi 
-                    (no_invoice, nama_tamu, no_hp, id_kamar, tgl_checkin, durasi_malam, harga_kamar_per_malam, total_biaya_kamar, total_tagihan, status_transaksi, status_bayar, id_user_resepsionis) 
+                    (no_invoice, nama_tamu, nik_tamu, no_hp, id_kamar, tgl_checkin, durasi_malam, harga_kamar_per_malam, total_biaya_kamar, total_tagihan, status_transaksi, status_bayar, id_user_resepsionis) 
                     VALUES 
-                    (:inv, :nama, :hp, :id_kamar, :tgl, :durasi, :harga, :total, :total, 'checkin', 'belum_bayar', :user)";
+                    (:inv, :nama, :nik, :hp, :id_kamar, :tgl, :durasi, :harga, :total, :total, 'active', 'belum_bayar', :user)"; // 'active' for current checkins
             
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 'inv' => $invoice,
                 'nama' => $nama,
+                'nik' => $nik, // <<< NIK Disimpan
                 'hp' => $hp,
                 'id_kamar' => $id_kamar,
                 'tgl' => $tgl_checkin,
@@ -69,17 +72,18 @@ class CheckinController {
 
         // TAMPILKAN FORM
         // Ambil kamar available + join tipe untuk info harga di UI
-        $query = "SELECT k.id_kamar, k.nomor_kamar, t.nama_tipe, t.harga_dasar, t.deskripsi 
-                  FROM kamar k 
-                  JOIN tipe_kamar t ON k.id_tipe = t.id_tipe 
-                  WHERE k.status = 'available' 
-                  ORDER BY k.nomor_kamar ASC";
+        $queryKamar = "SELECT k.id_kamar, k.nomor_kamar, t.id_tipe, t.nama_tipe, t.harga_dasar 
+                       FROM kamar k 
+                       JOIN tipe_kamar t ON k.id_tipe = t.id_tipe 
+                       WHERE k.status = 'available' 
+                       ORDER BY k.nomor_kamar ASC";
         
-        // Note: Sesuaikan method query/fetchAll dengan class Database Anda
-        // Jika class Database Anda menggunakan PDO native:
-        $kamar = $this->db->query($query)->fetchAll(PDO::FETCH_ASSOC);
+        $kamar = $this->db->query($queryKamar)->fetchAll(PDO::FETCH_ASSOC);
 
-        $this->view('Checkin/create', ['kamar' => $kamar]);
+        // Ambil semua tipe kamar untuk filter modal
+        $listTipe = $this->db->query("SELECT id_tipe, nama_tipe FROM tipe_kamar ORDER BY nama_tipe ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+        $this->view('Checkin/create', ['kamar' => $kamar, 'listTipe' => $listTipe]);
     }
 
     private function view($p, $d) { 
