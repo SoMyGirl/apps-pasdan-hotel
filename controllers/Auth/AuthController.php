@@ -18,25 +18,36 @@ class AuthController {
             $username = $_POST['username'];
             $password = $_POST['password'];
 
-            // Cek user di database
-            // Kita pakai query manual biar aman (prepared statement ada di class Database)
-            $sql = "SELECT * FROM users WHERE username = '$username'";
-            $user = $this->db->query($sql)->fetch();
+            // PERBAIKAN: Ambil langsung dari tabel users (tanpa join jabatan yang membingungkan)
+            // Karena kolom 'role' sekarang sudah ada di tabel users
+            $stmt = $this->db->prepare("SELECT * FROM users WHERE username = :user");
+            $stmt->execute(['user' => $username]);
+            $user = $stmt->fetch();
 
             // Verifikasi Password
             if ($user && password_verify($password, $user['password'])) {
+                
                 // Set Session
                 $_SESSION['user_id'] = $user['id_user'];
                 $_SESSION['nama']    = $user['nama_lengkap'];
-                $_SESSION['role']    = $user['role'];
+                
+                // PERBAIKAN: Ambil role langsung dari kolom database
+                $_SESSION['role']    = $user['role']; 
+                
                 $_SESSION['status_login'] = true;
 
-                // Notifikasi Sukses (Disimpan di Session Flash)
+                // Notifikasi Sukses
                 $_SESSION['flash_type'] = 'success';
                 $_SESSION['flash_message'] = 'Selamat datang kembali, ' . $user['nama_lengkap'];
 
-                // Redirect ke Dashboard
-                header("Location: index.php?modul=Dashboard&aksi=index");
+                // Redirect Khusus berdasarkan Role
+                if ($user['role'] == 'housekeeping') {
+                    // Housekeeping langsung ke halaman tugasnya
+                    header("Location: index.php?modul=Housekeeping&aksi=index");
+                } else {
+                    // Admin & Resepsionis ke Dashboard
+                    header("Location: index.php?modul=Dashboard&aksi=index");
+                }
                 exit;
             } else {
                 // Gagal Login
@@ -45,7 +56,7 @@ class AuthController {
             }
         }
 
-        // Tampilkan Halaman Login (Tanpa Header/Sidebar standar)
+        // Tampilkan Halaman Login
         include 'views/Auth/login.php';
     }
 
