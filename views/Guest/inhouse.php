@@ -1,20 +1,24 @@
 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
     <div>
-        <h1 class="text-3xl font-bold tracking-tight text-zinc-900">In-House Guests</h1>
-        <p class="text-zinc-500 mt-1 text-sm">Daftar tamu yang sedang menginap di hotel saat ini.</p>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-zinc-900">In-House Guests</h1>
+        <p class="text-zinc-500 mt-1 text-sm">Daftar tamu yang sedang menginap.</p>
     </div>
-    <div class="flex items-center gap-3">
-        <div class="relative">
+    
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+        <div class="relative w-full sm:w-auto">
             <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-zinc-400"></i>
-            <input type="text" id="searchInput" placeholder="Cari nama atau kamar..." 
-                   class="pl-9 pr-4 py-2 w-64 rounded-lg border border-zinc-200 text-sm focus:border-zinc-900 focus:ring-zinc-900 transition-all shadow-sm">
+            <input type="text" id="searchInput" placeholder="Cari nama/kamar..." 
+                   class="pl-9 pr-4 py-2 w-full sm:w-64 rounded-lg border border-zinc-200 text-sm focus:border-zinc-900 shadow-sm">
         </div>
-        <a href="index.php?modul=Checkin&aksi=create" class="bg-zinc-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-zinc-800 transition-colors shadow-sm flex items-center gap-2">
-            <i data-lucide="plus" class="w-4 h-4"></i> Check-in Baru
-        </a>
-        <a href="index.php?modul=Guest&aksi=history" class="bg-zinc-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-zinc-800 transition-colors shadow-sm flex items-center gap-2">
-            History
-        </a>
+        
+        <div class="flex gap-2">
+            <a href="index.php?modul=Checkin&aksi=create" class="flex-1 sm:flex-none bg-zinc-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-zinc-800 shadow-sm flex items-center justify-center gap-2">
+                <i data-lucide="plus" class="w-4 h-4"></i> <span class="hidden sm:inline">Check-in</span>
+            </a>
+            <a href="index.php?modul=Guest&aksi=history" class="flex-1 sm:flex-none bg-white border border-zinc-200 text-zinc-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-zinc-50 shadow-sm flex items-center justify-center gap-2">
+                <i data-lucide="history" class="w-4 h-4"></i> History
+            </a>
+        </div>
     </div>
 </div>
 
@@ -24,49 +28,34 @@
             <div class="w-16 h-16 bg-zinc-50 rounded-full flex items-center justify-center mb-4">
                 <i data-lucide="bed-double" class="w-8 h-8 text-zinc-300"></i>
             </div>
-            <h3 class="text-lg font-bold text-zinc-900">Tidak ada tamu menginap</h3>
-            <p class="text-zinc-500 text-sm mt-1 max-w-xs mx-auto">Saat ini seluruh kamar dalam keadaan kosong. Silakan lakukan Check-in baru.</p>
-            <a href="index.php?modul=Checkin&aksi=create" class="mt-4 text-sm font-bold text-zinc-900 underline hover:text-zinc-700">
-                Buat Check-in Sekarang
-            </a>
+            <h3 class="text-lg font-bold text-zinc-900">Tidak ada tamu</h3>
+            <p class="text-zinc-500 text-sm mt-1 mb-4">Semua kamar kosong.</p>
+            <a href="index.php?modul=Checkin&aksi=create" class="text-sm font-bold text-zinc-900 underline">Check-in Sekarang</a>
         </div>
     <?php else: ?>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm" id="guestTable">
-                <thead class="bg-zinc-50/50 border-b border-zinc-100">
+        <div class="overflow-x-auto w-full">
+            <table class="w-full text-left text-sm whitespace-nowrap" id="guestTable">
+                <thead class="bg-zinc-50 border-b border-zinc-100">
                     <tr>
                         <th class="px-6 py-4 font-semibold text-zinc-900">Tamu</th>
                         <th class="px-6 py-4 font-semibold text-zinc-900">Kamar</th>
-                        <th class="px-6 py-4 font-semibold text-zinc-900">Tagihan & Sisa</th>
-                        <th class="px-6 py-4 font-semibold text-zinc-900 text-center">Status Pembayaran</th>
+                        <th class="px-6 py-4 font-semibold text-zinc-900">Tagihan</th>
+                        <th class="px-6 py-4 font-semibold text-zinc-900 text-center">Status</th>
                         <th class="px-6 py-4 text-right font-semibold text-zinc-900">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-100">
                     <?php foreach($tamu as $t): ?>
                         <?php 
-                            // 1. Inisial Nama
-                            $initials = collect(explode(' ', $t['nama_tamu']))->map(fn($word) => strtoupper(substr($word, 0, 1)))->take(2)->join('');
+                            $initials = substr(strtoupper($t['nama_tamu']), 0, 2);
+                            $sisa = $t['total_tagihan'] - $t['total_terbayar'];
                             
-                            // 2. Kalkulasi Real-time (PENTING)
-                            // Kita hitung sisa bayar berdasarkan data aktual, bukan status text di database
-                            // Ini mengatasi bug "Tambah Pesanan -> Status tetap Lunas"
-                            $tagihan = $t['total_tagihan'];
-                            $bayar   = $t['total_terbayar']; 
-                            $sisa    = $tagihan - $bayar;
-
                             if ($sisa <= 0) {
-                                // LUNAS (Hijau)
-                                $badgeClass = "bg-emerald-50 text-emerald-700 ring-emerald-600/20";
-                                $statusText = "LUNAS";
-                            } elseif ($bayar > 0) {
-                                // DP / KURANG (Kuning/Biru)
-                                $badgeClass = "bg-amber-50 text-amber-700 ring-amber-600/20";
-                                $statusText = "KURANG (DP)";
+                                $badge = "bg-emerald-50 text-emerald-700 ring-emerald-600/20"; $stText = "LUNAS";
+                            } elseif ($t['total_terbayar'] > 0) {
+                                $badge = "bg-amber-50 text-amber-700 ring-amber-600/20"; $stText = "KURANG";
                             } else {
-                                // BELUM BAYAR SAMA SEKALI (Merah)
-                                $badgeClass = "bg-rose-50 text-rose-700 ring-rose-600/20";
-                                $statusText = "BELUM BAYAR";
+                                $badge = "bg-rose-50 text-rose-700 ring-rose-600/20"; $stText = "BELUM BAYAR";
                             }
                         ?>
                         <tr class="hover:bg-zinc-50/50 transition-colors group">
@@ -83,44 +72,25 @@
                                     </div>
                                 </div>
                             </td>
-
                             <td class="px-6 py-4">
                                 <div class="flex flex-col">
-                                    <span class="text-base font-bold text-zinc-900 search-room">Room <?= $t['nomor_kamar'] ?></span>
-                                    <span class="text-xs text-zinc-500 font-medium uppercase tracking-wide"><?= $t['nama_tipe'] ?></span>
+                                    <span class="text-base font-bold text-zinc-900 search-room">Room <?= $t['list_kamar'] ?></span>
+                                    <span class="text-xs text-zinc-500 font-medium uppercase"><?= $t['list_tipe'] ?></span>
                                 </div>
                             </td>
-
                             <td class="px-6 py-4">
                                 <div class="flex flex-col gap-1">
-                                    <span class="text-zinc-900 font-bold">
-                                        Rp <?= number_format($tagihan) ?>
-                                    </span>
-                                    <span class="text-xs text-zinc-500">
-                                        Sisa: <span class="<?= $sisa > 0 ? 'text-rose-600 font-bold' : 'text-emerald-600' ?>">Rp <?= number_format($sisa) ?></span>
-                                    </span>
+                                    <span class="text-zinc-900 font-bold">Rp <?= number_format($t['total_tagihan']) ?></span>
+                                    <span class="text-xs text-zinc-500">Sisa: <span class="<?= $sisa > 0 ? 'text-rose-600 font-bold' : 'text-emerald-600' ?>">Rp <?= number_format($sisa) ?></span></span>
                                 </div>
                             </td>
-
                             <td class="px-6 py-4 text-center">
-                                <span class="inline-flex items-center rounded-md px-2 py-1 text-[10px] font-bold uppercase ring-1 ring-inset <?= $badgeClass ?>">
-                                    <?= $statusText ?>
-                                </span>
+                                <span class="inline-flex items-center rounded-md px-2 py-1 text-[10px] font-bold uppercase ring-1 ring-inset <?= $badge ?>"><?= $stText ?></span>
                             </td>
-
                             <td class="px-6 py-4 text-right">
                                 <div class="flex items-center justify-end gap-2">
-                                    <a href="index.php?modul=POS&aksi=index&id_transaksi=<?= $t['id_transaksi'] ?>" 
-                                       class="p-2 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-all" 
-                                       title="Tambah Layanan/Menu">
-                                        <i data-lucide="utensils" class="w-4 h-4"></i>
-                                    </a>
-                                    
-                                    <a href="index.php?modul=Checkout&aksi=payment&id=<?= $t['id_transaksi'] ?>" 
-                                       class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-900 text-white text-xs font-bold hover:bg-zinc-800 transition-all shadow-sm">
-                                        Detail Tamu
-                                        <i data-lucide="arrow-right" class="w-3 h-3"></i>
-                                    </a>
+                                    <a href="index.php?modul=POS&aksi=index&id_transaksi=<?= $t['id_transaksi'] ?>" class="p-2 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg" title="POS"><i data-lucide="utensils" class="w-4 h-4"></i></a>
+                                    <a href="index.php?modul=Checkout&aksi=payment&id=<?= $t['id_transaksi'] ?>" class="p-2 text-zinc-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg" title="Detail"><i data-lucide="arrow-right" class="w-4 h-4"></i></a>
                                 </div>
                             </td>
                         </tr>
@@ -128,41 +98,15 @@
                 </tbody>
             </table>
         </div>
-        
-        <div class="px-6 py-4 bg-zinc-50 border-t border-zinc-200 flex items-center justify-between">
-            <span class="text-xs text-zinc-500">Menampilkan <?= count($tamu) ?> tamu aktif</span>
-        </div>
     <?php endif; ?>
 </div>
-
-<?php
-// Function kecil jika Anda belum punya library 'collect'
-function collect($array) {
-    return new class($array) {
-        private $arr;
-        public function __construct($arr) { $this->arr = $arr; }
-        public function map($cb) { return new self(array_map($cb, $this->arr)); }
-        public function take($n) { return new self(array_slice($this->arr, 0, $n)); }
-        public function join($glue) { return implode($glue, $this->arr); }
-    };
-}
-?>
-
 <script>
-    // Simple Client-Side Search
     document.getElementById('searchInput').addEventListener('keyup', function() {
         let filter = this.value.toUpperCase();
-        let rows = document.querySelectorAll("#guestTable tbody tr");
-
-        rows.forEach(row => {
-            let name = row.querySelector(".search-name").innerText.toUpperCase();
-            let room = row.querySelector(".search-room").innerText.toUpperCase();
-            
-            if (name.indexOf(filter) > -1 || room.indexOf(filter) > -1) {
-                row.style.display = "";
-            } else {
-                row.style.display = "none";
-            }
+        document.querySelectorAll("#guestTable tbody tr").forEach(row => {
+            let txt = row.innerText.toUpperCase();
+            row.style.display = txt.indexOf(filter) > -1 ? "" : "none";
         });
     });
+    lucide.createIcons();
 </script>

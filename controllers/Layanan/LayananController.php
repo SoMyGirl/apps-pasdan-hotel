@@ -34,8 +34,8 @@ class LayananController {
         if (isset($_GET['hapus'])) {
             $id = $_GET['hapus'];
             
-            // Cek Dependensi: Jangan hapus jika sudah pernah dipesan di transaksi
-            $cek = $this->db->prepare("SELECT id_detail FROM transaksi_layanan WHERE id_layanan = :id LIMIT 1");
+            // PERBAIKAN DISINI: Gunakan SELECT * atau SELECT 1 agar tidak error jika nama kolom ID berbeda
+            $cek = $this->db->prepare("SELECT * FROM transaksi_layanan WHERE id_layanan = :id LIMIT 1");
             $cek->execute(['id' => $id]);
             
             if($cek->rowCount() > 0) {

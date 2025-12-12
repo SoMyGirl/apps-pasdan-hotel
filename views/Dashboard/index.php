@@ -14,6 +14,7 @@
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    
     <div class="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm hover:shadow-md transition-shadow duration-200">
         <div class="flex items-center justify-between mb-4">
             <span class="text-sm font-medium text-zinc-500">Total Asset</span>
@@ -33,7 +34,7 @@
         <div class="flex items-end gap-2">
             <h3 class="text-3xl font-bold text-zinc-900 tracking-tight"><?= $data['stats']['occupancy'] ?>%</h3>
             <span class="text-sm <?= $data['stats']['occupancy'] > 70 ? 'text-emerald-600' : 'text-zinc-500' ?> mb-1">
-                <?= $data['stats']['occupancy'] > 70 ? 'High' : 'Normal' ?>
+                (<?= $data['stats']['occupied'] ?> Terisi)
             </span>
         </div>
         <div class="w-full bg-zinc-100 rounded-full h-1.5 mt-3">
@@ -47,7 +48,10 @@
             <span class="text-sm font-medium text-zinc-500">Available</span>
             <span class="flex h-2 w-2 rounded-full bg-emerald-500"></span>
         </div>
-        <h3 class="text-3xl font-bold text-zinc-900 tracking-tight"><?= $data['stats']['available'] ?></h3>
+        <div class="flex items-end gap-2">
+            <h3 class="text-3xl font-bold text-zinc-900 tracking-tight"><?= $data['stats']['available'] ?></h3>
+            <span class="text-sm text-zinc-500 mb-1">Kamar</span>
+        </div>
     </div>
 
     <div class="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm hover:shadow-md transition-shadow duration-200 relative overflow-hidden">
@@ -56,7 +60,10 @@
             <span class="text-sm font-medium text-zinc-500">Needs Cleaning</span>
             <span class="flex h-2 w-2 rounded-full bg-amber-500"></span>
         </div>
-        <h3 class="text-3xl font-bold text-zinc-900 tracking-tight"><?= $data['stats']['dirty'] ?></h3>
+        <div class="flex items-end gap-2">
+            <h3 class="text-3xl font-bold text-zinc-900 tracking-tight"><?= $data['stats']['dirty'] ?></h3>
+            <span class="text-sm text-zinc-500 mb-1">Kamar</span>
+        </div>
     </div>
 </div>
 
@@ -83,15 +90,9 @@
         </div>
         
         <div class="flex gap-2">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                Available
-            </span>
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800">
-                Occupied
-            </span>
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                Dirty
-            </span>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">Available</span>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 text-rose-800">Occupied</span>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Dirty</span>
         </div>
     </div>
 
@@ -120,13 +121,14 @@
                         $icon = "user";
                         $statusLabel = "Occupied";
                         $subLabel = strlen($r['nama_tamu']) > 12 ? substr($r['nama_tamu'], 0, 12) . '..' : $r['nama_tamu'];
+                        // Modal butuh data transaksi untuk quick action
                         $action = "onclick=\"openRoomModal('{$r['nomor_kamar']}', '{$r['nama_tamu']}', '{$r['id_transaksi']}', '{$r['nama_tipe']}')\"";
                     } else {
                         $cardClass = "bg-zinc-50 ring-1 ring-amber-200 hover:ring-amber-400 hover:bg-white hover:shadow-md group";
                         $badgeClass = "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20";
                         $icon = "spray-can";
                         $statusLabel = "Dirty";
-                        $subLabel = "Cleaning";
+                        $subLabel = "Click to Clean";
                         $action = "onclick=\"confirmClean('{$r['id_kamar']}', '{$r['nomor_kamar']}')\"";
                     }
                     ?>
@@ -214,7 +216,6 @@
 </div>
 
 <script>
-    // Initialize Lucide Icons
     lucide.createIcons();
 
     const modal = document.getElementById('roomModal');
@@ -226,9 +227,10 @@
         document.getElementById('modalTamu').innerText = nama;
         document.getElementById('modalTipe').innerText = tipe;
         
+        // Link dinamis berdasarkan ID Transaksi
         let link = "index.php?modul=Checkout&aksi=payment&id=" + id;
         document.getElementById('btnDetail').href = link;
-        document.getElementById('btnPOS').href = "index.php?modul=POS&aksi=index&id_transaksi=" + id; 
+        document.getElementById('btnPOS').href = "index.php?modul=Checkout&aksi=payment&id=" + id; // POS ada di halaman payment
         document.getElementById('btnCheckout').href = link;
 
         modal.classList.remove('hidden');

@@ -17,7 +17,7 @@
     // 1. Ambil Parameter Filter
     $f = $_GET['filter'] ?? 'all';      // Filter Status
     $year = $_GET['year'] ?? date('Y'); // Filter Tahun
-    $q = $_GET['triwulan'] ?? 'all';    // Filter Triwulan (Baru)
+    $q = $_GET['triwulan'] ?? 'all';    // Filter Triwulan
     $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
     $limit = 10; 
 
@@ -38,7 +38,7 @@
             if ($q == '4' && ($dbMonth < 10 || $dbMonth > 12)) return false;// Oct-Dec
         }
 
-        // Cek Status (Jika filtering status tidak dihandle di query SQL)
+        // Cek Status
         if ($f == 'finished' && empty($item['tgl_checkout'])) return false;
         if ($f == 'active' && !empty($item['tgl_checkout'])) return false;
 
@@ -60,7 +60,7 @@
             : "bg-transparent text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 font-medium";
     }
 
-    // Helper function membuat URL agar parameter tidak hilang
+    // Helper function membuat URL
     function makeUrl($params = []) {
         $base = [
             'modul' => 'Guest', 
@@ -68,7 +68,7 @@
             'filter' => $_GET['filter'] ?? 'all',
             'year' => $_GET['year'] ?? date('Y'),
             'triwulan' => $_GET['triwulan'] ?? 'all',
-            'page' => 1 // Default reset ke page 1 jika ganti filter
+            'page' => 1 
         ];
         $final = array_merge($base, $params);
         return "index.php?" . http_build_query($final);
@@ -162,7 +162,7 @@
 
                         <td class="px-6 py-4">
                             <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-zinc-100 text-zinc-700 border border-zinc-200">
-                                Room <?= $t['nomor_kamar'] ?>
+                                Room <?= $t['list_kamar'] ?>
                             </span>
                         </td>
 
