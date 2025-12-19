@@ -4,7 +4,10 @@ class HousekeepingController {
     public function __construct() { $this->db = new Database(); }
 
     public function index() {
-        if(!in_array($_SESSION['role'], ['admin','housekeeping'])) header("Location: index.php");
+        // PERBAIKAN: Mengizinkan admin, administrator, GM, dan housekeeping
+        if(!in_array($_SESSION['role'], ['admin', 'administrator', 'general manager', 'housekeeping'])) {
+            header("Location: index.php"); exit;
+        }
         
         // Ambil data dari View Database
         $dirtyRooms = $this->db->query("SELECT * FROM v_hk_dirty ORDER BY nomor_kamar ASC")->fetchAll(PDO::FETCH_ASSOC);
@@ -18,7 +21,10 @@ class HousekeepingController {
 
     // --- HALAMAN DETAIL BARU ---
     public function detail() {
-        if(!in_array($_SESSION['role'], ['admin','housekeeping'])) header("Location: index.php");
+        // PERBAIKAN: Mengizinkan admin, administrator, GM, dan housekeeping
+        if(!in_array($_SESSION['role'], ['admin', 'administrator', 'general manager', 'housekeeping'])) {
+            header("Location: index.php"); exit;
+        }
         
         $id = $_GET['id'] ?? null;
         if(!$id) { header("Location: index.php?modul=Housekeeping&aksi=index"); exit; }
@@ -38,7 +44,7 @@ class HousekeepingController {
         $this->db->query("UPDATE kamar SET status='available' WHERE id_kamar=$id");
         $this->db->prepare("INSERT INTO log_housekeeping (id_user,id_kamar,status_sebelum,status_sesudah) VALUES (?,?,'dirty','available')")
                  ->execute([$_SESSION['user_id'], $id]);
-                 
+                  
         $_SESSION['flash_type']='success'; $_SESSION['flash_message']='Kamar berhasil dibersihkan!';
         header("Location: index.php?modul=Housekeeping&aksi=index");
     }

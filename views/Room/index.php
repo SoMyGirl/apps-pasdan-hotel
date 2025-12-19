@@ -30,7 +30,11 @@
                    class="pl-9 pr-4 py-2 w-full rounded-lg border border-zinc-200 text-sm focus:border-zinc-900 focus:ring-zinc-900 transition-all shadow-sm">
         </div>
         
-        <?php if($_SESSION['role'] == 'admin'): ?>
+        <?php 
+            // Cek role dengan huruf kecil agar aman
+            $role = strtolower($_SESSION['role'] ?? '');
+            if(in_array($role, ['admin', 'administrator', 'general manager'])): 
+        ?>
             <a href="index.php?modul=Room&aksi=create" class="bg-zinc-900 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-zinc-800 transition-all shadow-sm flex items-center justify-center gap-2 whitespace-nowrap">
                 <i data-lucide="plus" class="w-4 h-4"></i> <span class="md:hidden lg:inline">Tambah</span>
             </a>
@@ -47,7 +51,8 @@
                     <th class="px-6 py-4 font-semibold text-zinc-500">Tipe Kamar</th>
                     <th class="px-6 py-4 font-semibold text-zinc-500">Harga Dasar</th>
                     <th class="px-6 py-4 font-semibold text-zinc-500 text-center">Status</th>
-                    <?php if($_SESSION['role'] == 'admin'): ?>
+                    
+                    <?php if(in_array($role, ['admin', 'administrator', 'general manager'])): ?>
                         <th class="px-6 py-4 font-semibold text-zinc-500 text-right">Aksi</th>
                     <?php endif; ?>
                 </tr>
@@ -86,7 +91,7 @@
                             </span>
                         </td>
                         
-                        <?php if($_SESSION['role'] == 'admin'): ?>
+                        <?php if(in_array($role, ['admin', 'administrator', 'general manager'])): ?>
                         <td class="px-6 py-4 text-right">
                             <button onclick="confirmDelete(<?= $k['id_kamar'] ?>, '<?= $k['nomor_kamar'] ?>')" 
                                     class="inline-flex items-center justify-center p-2 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all">
