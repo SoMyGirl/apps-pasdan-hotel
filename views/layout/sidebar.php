@@ -2,8 +2,8 @@
     
     <div class="h-16 flex items-center px-6 border-b border-zinc-100 shrink-0">
         <div class="flex items-center gap-3 font-bold text-xl tracking-tight text-zinc-900">
-            <img src="assets/img/logo.png" class="h-10 w-auto" alt="Logo smk pasundan">
-            <span>HOTEL SMK</span>
+            <img src="assets/img/logo.png" class="h-16 w-auto" alt="Logo smk pasundan">
+            <span> Heritage Hotel</span>
         </div>
     </div>
 
