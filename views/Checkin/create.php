@@ -24,11 +24,11 @@
                     </button>
                 </div>
                 <div class="p-6">
-                    <div id="emptyGuestState" class="text-center py-8 border-2 border-dashed border-zinc-200 rounded-xl hover:border-zinc-300 transition-colors cursor-pointer group" onclick="openGuestModal()">
-                        <div class="w-14 h-14 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-3 text-zinc-400 group-hover:scale-110 transition-transform">
+                    <div id="emptyGuestState" class="text-center py-8 border-2 border-dashed border-zinc-200 rounded-xl hover:border-blue-400 transition-colors cursor-pointer group" onclick="openGuestModal()">
+                        <div class="w-14 h-14 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-3 text-zinc-400 group-hover:text-blue-400 group-hover:scale-110 transition-transform">
                             <i data-lucide="user-plus" class="w-7 h-7"></i>
                         </div>
-                        <p class="text-zinc-500 text-sm font-medium">Belum ada tamu dipilih.</p>
+                        <p class="text-zinc-500 text-sm font-medium group-hover:text-blue-400">Belum ada tamu dipilih.</p>
                     </div>
 
                     <div id="selectedGuestCard" class="hidden flex items-center gap-5 bg-blue-50 border border-blue-100 p-5 rounded-xl shadow-sm">
