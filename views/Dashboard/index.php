@@ -272,4 +272,4 @@
             if(result.isConfirmed) window.location.href = "index.php?modul=Dashboard&aksi=clean&id=" + id;
         })
     }
-</script>
+</script>  

@@ -1,3 +1,5 @@
+<script src="https://unpkg.com/lucide@latest"></script>
+
 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
     <div>
         <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-zinc-900">Master Kamar</h1>
@@ -25,12 +27,17 @@
         </div>
 
         <div class="relative w-full md:w-64">
-            <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-zinc-400"></i>
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i data-lucide="search" class="h-4 w-4 text-zinc-400"></i>
+            </div>
             <input type="text" id="searchRoom" placeholder="Cari nomor kamar..." 
                    class="pl-9 pr-4 py-2 w-full rounded-lg border border-zinc-200 text-sm focus:border-zinc-900 focus:ring-zinc-900 transition-all shadow-sm">
         </div>
         
-        <?php if($_SESSION['role'] == 'admin'): ?>
+        <?php 
+            $role = trim(strtolower($_SESSION['role'] ?? ''));
+            if(in_array($role, ['admin', 'administrator', 'general manager'])): 
+        ?>
             <a href="index.php?modul=Room&aksi=create" class="bg-zinc-900 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-zinc-800 transition-all shadow-sm flex items-center justify-center gap-2 whitespace-nowrap">
                 <i data-lucide="plus" class="w-4 h-4"></i> <span class="md:hidden lg:inline">Tambah</span>
             </a>
@@ -47,7 +54,8 @@
                     <th class="px-6 py-4 font-semibold text-zinc-500">Tipe Kamar</th>
                     <th class="px-6 py-4 font-semibold text-zinc-500">Harga Dasar</th>
                     <th class="px-6 py-4 font-semibold text-zinc-500 text-center">Status</th>
-                    <?php if($_SESSION['role'] == 'admin'): ?>
+                    
+                    <?php if(in_array($role, ['admin', 'administrator', 'general manager'])): ?>
                         <th class="px-6 py-4 font-semibold text-zinc-500 text-right">Aksi</th>
                     <?php endif; ?>
                 </tr>
@@ -57,6 +65,7 @@
                     <?php 
                         $statusClass = "";
                         $label = ucfirst($k['status']);
+                        // Styling status badge
                         if($k['status'] == 'available') {
                             $statusClass = "bg-emerald-50 text-emerald-700 ring-emerald-600/20";
                         } elseif($k['status'] == 'occupied') {
@@ -86,10 +95,10 @@
                             </span>
                         </td>
                         
-                        <?php if($_SESSION['role'] == 'admin'): ?>
+                        <?php if(in_array($role, ['admin', 'administrator', 'general manager'])): ?>
                         <td class="px-6 py-4 text-right">
                             <button onclick="confirmDelete(<?= $k['id_kamar'] ?>, '<?= $k['nomor_kamar'] ?>')" 
-                                    class="inline-flex items-center justify-center p-2 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all">
+                                    class="inline-flex items-center justify-center p-2 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all group-btn">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </td>
@@ -102,13 +111,16 @@
     
     <?php if(empty($kamar)): ?>
         <div class="p-12 text-center text-zinc-400">
-            <i data-lucide="filter-x" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+            <div class="flex justify-center mb-3">
+                <i data-lucide="filter-x" class="w-12 h-12 opacity-50"></i>
+            </div>
             <p>Tidak ada kamar ditemukan.</p>
         </div>
     <?php endif; ?>
 </div>
 
 <script>
+    // 1. Logic Pencarian (Live Search)
     document.getElementById('searchRoom').addEventListener('keyup', function() {
         let filter = this.value.toUpperCase();
         let rows = document.querySelectorAll("#roomTable tr");
@@ -117,11 +129,34 @@
             row.style.display = txt.toUpperCase().indexOf(filter) > -1 ? "" : "none";
         });
     });
+
+    // 2. Logic Konfirmasi Hapus
     function confirmDelete(id, nama) {
         Swal.fire({
-            title: 'Hapus Kamar '+nama+'?', text: "Data hilang permanen!", icon: 'warning',
-            showCancelButton: true, confirmButtonColor: '#e11d48', confirmButtonText: 'Hapus'
-        }).then((result) => { if (result.isConfirmed) window.location.href = "index.php?modul=Room&aksi=index&hapus=" + id; })
+            title: 'Hapus Kamar '+nama+'?', 
+            text: "Data yang dihapus tidak bisa dikembalikan!", 
+            icon: 'warning',
+            showCancelButton: true, 
+            confirmButtonColor: '#e11d48', 
+            cancelButtonColor: '#f4f4f5',
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: '<span style="color:#555">Batal</span>'
+        }).then((result) => { 
+            if (result.isConfirmed) {
+                window.location.href = "index.php?modul=Room&aksi=index&hapus=" + id; 
+            }
+        })
     }
-    lucide.createIcons();
+
+    // 3. Logic Icon Lucide (FIXED: Menunggu Loading Selesai)
+    document.addEventListener("DOMContentLoaded", function() {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        } else {
+            // Fallback jika script lucide dimuat belakangan
+            setTimeout(() => {
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }, 500);
+        }
+    });
 </script>

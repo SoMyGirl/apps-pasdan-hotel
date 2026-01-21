@@ -4,15 +4,22 @@ class UserController {
     public function __construct() { $this->db = new Database(); }
 
     public function index() {
-        if ($_SESSION['role'] !== 'admin') { header("Location: index.php"); exit; }
+        // PERBAIKAN: Mengizinkan admin, administrator, dan general manager
+        if (!in_array($_SESSION['role'], ['admin', 'administrator', 'general manager'])) { 
+            header("Location: index.php"); exit; 
+        }
 
         if (isset($_GET['hapus'])) {
             $id = $_GET['hapus'];
             if ($id == $_SESSION['user_id']) {
                 $this->flash('error', 'Tidak bisa menghapus akun sendiri!');
             } else {
-                $this->db->prepare("DELETE FROM users WHERE id_user=?")->execute([$id]);
-                $this->flash('success', 'Staff dihapus.');
+                try {
+                    $this->db->prepare("DELETE FROM users WHERE id_user=?")->execute([$id]);
+                    $this->flash('success', 'Staff dihapus.');
+                } catch (Exception $e) {
+                    $this->flash('error', 'Gagal hapus: ' . $e->getMessage());
+                }
             }
             header("Location: index.php?modul=User&aksi=index"); exit;
         }
@@ -23,14 +30,17 @@ class UserController {
     }
 
     public function create() {
-        if ($_SESSION['role'] !== 'admin') { header("Location: index.php"); exit; }
+        // PERBAIKAN: Mengizinkan admin, administrator, dan general manager
+        if (!in_array($_SESSION['role'], ['admin', 'administrator', 'general manager'])) { 
+            header("Location: index.php"); exit; 
+        }
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $nm = htmlspecialchars($_POST['nama']);
             $us = strtolower(htmlspecialchars($_POST['username']));
             $pw = password_hash($_POST['password'], PASSWORD_DEFAULT);
-            $rl = $_POST['role'];
-            $jk = $_POST['gender']; // Tangkap input Gender
+            $jk = $_POST['gender'];
+            $ij = $_POST['id_jabatan']; // Tangkap ID Jabatan
 
             // Cek Username
             $cek = $this->db->prepare("SELECT id_user FROM users WHERE username = :us");
@@ -40,15 +50,16 @@ class UserController {
                 $this->flash('error', 'Username sudah digunakan!');
             } else {
                 try {
-                    // Update Query untuk memasukkan Gender
-                    $sql = "INSERT INTO users (username, password, nama_lengkap, gender, role) VALUES (:us, :pw, :nm, :jk, :rl)";
+                    // INSERT ke id_jabatan (Tanpa kolom role)
+                    $sql = "INSERT INTO users (username, password, nama_lengkap, gender, id_jabatan) 
+                            VALUES (:us, :pw, :nm, :jk, :ij)";
                     $stmt = $this->db->prepare($sql);
                     $stmt->execute([
                         'us' => $us,
                         'pw' => $pw,
                         'nm' => $nm,
                         'jk' => $jk,
-                        'rl' => $rl
+                        'ij' => $ij
                     ]);
                     
                     $this->flash('success', 'Staff baru berhasil ditambahkan.');
@@ -58,7 +69,11 @@ class UserController {
                 }
             }
         }
-        $this->view('User/create');
+
+        // AMBIL LIST JABATAN DARI DATABASE
+        $listJabatan = $this->db->query("SELECT * FROM jabatan ORDER BY level ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+        $this->view('User/create', ['listJabatan' => $listJabatan]);
     }
 
     private function flash($t, $m) { if(session_status()==PHP_SESSION_NONE)session_start(); $_SESSION['flash_type']=$t; $_SESSION['flash_message']=$m; }

@@ -8,7 +8,8 @@ class ReportController {
     }
 
     public function index() {
-        if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+        // PERBAIKAN: Cek Otoritas (Admin, Administrator, GM)
+        if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['admin', 'administrator', 'general manager'])) {
             header("Location: index.php?modul=Dashboard&aksi=index"); exit;
         }
 
@@ -55,7 +56,10 @@ class ReportController {
 
     // --- FUNGSI EXPORT EXCEL ---
     public function export() {
-        if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') exit;
+        // PERBAIKAN: Cek Otoritas (Admin, Administrator, GM)
+        if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['admin', 'administrator', 'general manager'])) {
+            exit;
+        }
 
         $tahun = $_GET['year'] ?? date('Y');
         $bulan = $_GET['bulan'] ?? '';
@@ -98,9 +102,8 @@ class ReportController {
             echo "<tr>";
             echo "<td>" . $d['no_invoice'] . "</td>";
             echo "<td>" . $d['tgl_checkin'] . "</td>";
-            echo "<td>" . $d['tgl_checkout'] . "</td>"; // Kolom baru dari view
+            echo "<td>" . $d['tgl_checkout'] . "</td>";
             echo "<td>" . $d['nama_tamu'] . "</td>";
-            // PERBAIKAN: Gunakan 'nomor_kamar' (bukan list_kamar) sesuai View terbaru
             echo "<td>" . $d['nomor_kamar'] . "</td>"; 
             echo "<td>" . $d['total_tagihan'] . "</td>";
             echo "<td>" . strtoupper($d['status_bayar']) . "</td>";
